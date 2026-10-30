@@ -7,6 +7,6 @@ html{scroll-behavior:smooth}
 body{margin:0;background:#f7f6f2;color:#44403c;font-family:var(--font-nunito),sans-serif}
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
-::selection{background:#d9f0fb;color:#155e75}
+::selection{background:#d9f0fb;color:#155e75}\n:root{--theme-primary:#3b82f6;--theme-soft:#eff6ff;--theme-border:#bfdbfe}\n:root[data-theme="green"]{--theme-primary:#10b981;--theme-soft:#ecfdf5;--theme-border:#a7f3d0}\n:root[data-theme="pink"]{--theme-primary:#ec4899;--theme-soft:#fdf2f8;--theme-border:#fbcfe8}\n.bg-sky-500,.bg-blue-500{background-color:var(--theme-primary)!important}\n.hover\\:bg-sky-600:hover,.hover\\:bg-blue-600:hover{filter:brightness(.92)}\n.bg-sky-50,.bg-blue-50{background-color:var(--theme-soft)}\n.border-sky-100,.border-blue-100{border-color:var(--theme-border)}\n.text-sky-600,.text-blue-600,.text-sky-700,.text-blue-700{color:var(--theme-primary)}
 .soft-scrollbar::-webkit-scrollbar{width:6px;height:6px}
 .soft-scrollbar::-webkit-scrollbar-thumb{background:#d6eaf2;border-radius:20px}
