@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useMemo,useState,useRef} from "react";
-import {BookOpen,CalendarDays,CheckCircle2,Circle,Clock3,Flame,Plus,Trash2,Play,Pause,RotateCcw,Target,Edit3,ExternalLink,Star,Settings,Sun,Moon,Image as ImageIcon,UserRound,LogOut,Camera,X} from "lucide-react";
+import {BookOpen,CalendarDays,CheckCircle2,Circle,Clock3,Flame,Plus,Trash2,Play,Pause,RotateCcw,Target,Edit3,ExternalLink,Star,Settings,Sun,Moon,Image as ImageIcon,UserRound,LogOut,Camera,X,FolderOpen} from "lucide-react";
 import {CartesianGrid,Line,LineChart,ResponsiveContainer,Tooltip,XAxis,YAxis} from "recharts";
 import type {AppData,Goal,TabId,Task,Session,Resource,Word} from "./types";
 const days=["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7","Chủ nhật"];
