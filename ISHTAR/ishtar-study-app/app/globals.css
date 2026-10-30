@@ -1,10 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-:root{color-scheme:light}
+:root{color-scheme:light;--page:#F8FAFC;--surface:#ffffff;--ink:#1e293b;--muted:#64748b;--line:#e2e8f0}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:#f7f6f2;color:#44403c;font-family:var(--font-nunito),sans-serif}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--font-quicksand),sans-serif;transition:background-color .2s,color .2s}.dark-theme{color-scheme:dark;--page:#111827;--surface:#1F2937;--ink:#F3F4F6;--muted:#9CA3AF;--line:#374151}.dark-theme body{background:var(--page);color:var(--ink)}.dark-theme .bg-white{background-color:var(--surface)!important}.dark-theme .bg-stone-50,.dark-theme .bg-slate-50{background-color:#273449!important}.dark-theme .text-stone-800,.dark-theme .text-stone-700,.dark-theme .text-slate-800{color:var(--ink)!important}.dark-theme .text-stone-400,.dark-theme .text-slate-400{color:var(--muted)!important}.dark-theme .border-stone-100,.dark-theme .border-slate-100,.dark-theme .border-blue-50{border-color:var(--line)!important}.dark-theme input,.dark-theme textarea,.dark-theme select{background:#273449!important;color:var(--ink)!important;border-color:var(--line)!important}.dark-theme header{background:#111827ee!important}.dark-theme aside{background:#172235!important}.dark-theme .bg-blue-50,.dark-theme .bg-sky-50{background:#24364f!important}
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
 ::selection{background:#d9f0fb;color:#155e75}\n:root{--theme-primary:#3b82f6;--theme-soft:#eff6ff;--theme-border:#bfdbfe}\n:root[data-theme="green"]{--theme-primary:#10b981;--theme-soft:#ecfdf5;--theme-border:#a7f3d0}\n:root[data-theme="pink"]{--theme-primary:#ec4899;--theme-soft:#fdf2f8;--theme-border:#fbcfe8}\n.bg-sky-500,.bg-blue-500{background-color:var(--theme-primary)!important}\n.hover\\:bg-sky-600:hover,.hover\\:bg-blue-600:hover{filter:brightness(.92)}\n.bg-sky-50,.bg-blue-50{background-color:var(--theme-soft)}\n.border-sky-100,.border-blue-100{border-color:var(--theme-border)}\n.text-sky-600,.text-blue-600,.text-sky-700,.text-blue-700{color:var(--theme-primary)}
