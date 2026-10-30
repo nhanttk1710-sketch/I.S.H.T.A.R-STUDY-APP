@@ -11,9 +11,14 @@ function Card({children,className=""}:{children:React.ReactNode;className?:strin
 function Heading({title,desc}:{title:string;desc:string}){return <div className="mb-7"><h1 className="text-2xl font-bold text-stone-800 sm:text-3xl">{title}</h1><p className="mt-2 text-sm text-stone-400">{desc}</p></div>}
 function Empty({children}:{children:string}){return <p className="rounded-2xl bg-stone-50 p-6 text-center text-sm text-stone-400">{children}</p>}
 export default function StudyTabs({tab,name,goal:dailyGoal,onToast}:{tab:TabId;name:string;goal:number;onToast:(s:string)=>void}){
- const [data,setData]=useState<AppData>(blank),[ready,setReady]=useState(false);\n const [theme,setTheme]=useState<"blue"|"green"|"pink">("blue");\n const [gradeDraft,setGradeDraft]=useState({subject:"",weight:"1",score:""});\n const [gradeMode,setGradeMode]=useState<"ten"|"four">("ten");\n const [editingResource,setEditingResource]=useState("");
+ const [data,setData]=useState<AppData>(blank),[ready,setReady]=useState(false);
+ const [theme,setTheme]=useState<"blue"|"green"|"pink">("blue");
+ const [gradeDraft,setGradeDraft]=useState({subject:"",weight:"1",score:""});
+ const [gradeMode,setGradeMode]=useState<"ten"|"four">("ten");
+ const [editingResource,setEditingResource]=useState("");
  useEffect(()=>{try{const raw=localStorage.getItem("ishtar-study-data-v2");if(raw){const d=JSON.parse(raw);setData({...blank,...d,tasks:d.tasks||[],grades:d.grades||[],sessions:(d.sessions||[]).map((s:Session)=>({...s,day:s.day===0?7:s.day})),resources:(d.resources||[]).map((r:Resource)=>({...r,isStarred:Boolean(r.isStarred)})),words:d.words||[],goals:d.goals||[]});setTheme(d.theme==="green"||d.theme==="pink"?d.theme:"blue")}}catch{}setReady(true)},[]);
- useEffect(()=>{if(ready){try{localStorage.setItem("ishtar-study-data-v2",JSON.stringify({...data,theme}))}catch{onToast("Bộ nhớ trình duyệt đã đầy. Hãy giảm dung lượng tệp/avatar.")}}},[data,theme,ready]);\n useEffect(()=>{document.documentElement.dataset.theme=theme},[theme]);
+ useEffect(()=>{if(ready){try{localStorage.setItem("ishtar-study-data-v2",JSON.stringify({...data,theme}))}catch{onToast("Bộ nhớ trình duyệt đã đầy. Hãy giảm dung lượng tệp/avatar.")}}},[data,theme,ready]);
+ useEffect(()=>{document.documentElement.dataset.theme=theme},[theme]);
  const [taskTitle,setTaskTitle]=useState(""),[taskSubject,setTaskSubject]=useState(""),[taskDue,setTaskDue]=useState("");
  const [session,setSession]=useState<Session>({id:"",subject:"",day:1,start:"08:00",end:"09:00"}),[editSession,setEditSession]=useState("");
  const [resource,setResource]=useState<Resource>({id:"",title:"",url:""});
