@@ -10,7 +10,7 @@ const input="w-full rounded-2xl bg-stone-50 px-4 py-3 text-sm outline-none ring-
 function Card({children,className=""}:{children:React.ReactNode;className?:string}){return <section className={"rounded-3xl bg-white p-5 shadow-sm sm:p-6 "+className}>{children}</section>}
 function Heading({title,desc}:{title:string;desc:string}){return <div className="mb-7"><h1 className="text-2xl font-bold text-stone-800 sm:text-3xl">{title}</h1><p className="mt-2 text-sm text-stone-400">{desc}</p></div>}
 function Empty({children}:{children:string}){return <p className="rounded-2xl bg-stone-50 p-6 text-center text-sm text-stone-400">{children}</p>}
-export default function StudyTabs({tab,name,goal,onToast}:{tab:TabId;name:string;goal:number;onToast:(s:string)=>void}){
+export default function StudyTabs({tab,name,goal:dailyGoal,onToast}:{tab:TabId;name:string;goal:number;onToast:(s:string)=>void}){
  const [data,setData]=useState<AppData>(blank),[ready,setReady]=useState(false);
  useEffect(()=>{try{const raw=localStorage.getItem("ishtar-study-data-v2");if(raw){const d=JSON.parse(raw);setData({...blank,...d,tasks:d.tasks||[],grades:d.grades||[],sessions:d.sessions||[],resources:d.resources||[],words:d.words||[],goals:d.goals||[]})}}catch{}setReady(true)},[]);
  useEffect(()=>{if(ready){try{localStorage.setItem("ishtar-study-data-v2",JSON.stringify(data))}catch{onToast("Bộ nhớ trình duyệt đã đầy. Hãy giảm dung lượng tệp/avatar.")}}},[data,ready]);
