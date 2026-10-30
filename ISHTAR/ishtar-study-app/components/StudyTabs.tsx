@@ -12,8 +12,8 @@ function Heading({title,desc}:{title:string;desc:string}){return <div className=
 function Empty({children}:{children:string}){return <p className="rounded-2xl bg-stone-50 p-6 text-center text-sm text-stone-400">{children}</p>}
 export default function StudyTabs({tab,name,goal,onToast}:{tab:TabId;name:string;goal:number;onToast:(s:string)=>void}){
  const [data,setData]=useState<AppData>(blank),[ready,setReady]=useState(false);
- useEffect(()=>{try{const raw=localStorage.getItem("ishtar-study-data");if(raw){const d=JSON.parse(raw);setData({...blank,...d,tasks:d.tasks||[],grades:d.grades||[],sessions:d.sessions||[],resources:d.resources||[],words:d.words||[],goals:d.goals||[]})}}catch{}setReady(true)},[]);
- useEffect(()=>{if(ready){try{localStorage.setItem("ishtar-study-data",JSON.stringify(data))}catch{onToast("Bộ nhớ trình duyệt đã đầy. Hãy giảm dung lượng tệp/avatar.")}}},[data,ready]);
+ useEffect(()=>{try{const raw=localStorage.getItem("ishtar-study-data-v2");if(raw){const d=JSON.parse(raw);setData({...blank,...d,tasks:d.tasks||[],grades:d.grades||[],sessions:d.sessions||[],resources:d.resources||[],words:d.words||[],goals:d.goals||[]})}}catch{}setReady(true)},[]);
+ useEffect(()=>{if(ready){try{localStorage.setItem("ishtar-study-data-v2",JSON.stringify(data))}catch{onToast("Bộ nhớ trình duyệt đã đầy. Hãy giảm dung lượng tệp/avatar.")}}},[data,ready]);
  const [taskTitle,setTaskTitle]=useState(""),[taskSubject,setTaskSubject]=useState(""),[taskDue,setTaskDue]=useState("");
  const [session,setSession]=useState<Session>({id:"",subject:"",day:1,start:"08:00",end:"09:00"}),[editSession,setEditSession]=useState("");
  const [resource,setResource]=useState<Resource>({id:"",title:"",url:""});
