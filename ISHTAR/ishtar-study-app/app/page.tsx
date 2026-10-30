@@ -1,5 +1,2 @@
 import IshtarApp from "@/components/ishtar-app";
-
-export default function Home() {
-  return <IshtarApp />;
-}
+export default function Home(){return <IshtarApp/>}
