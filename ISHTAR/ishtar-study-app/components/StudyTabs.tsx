@@ -9,7 +9,7 @@ const blank:AppData={name:"",avatar:"",subjects:[],dailyGoal:0,tasks:[],grades:[
 const uid=()=>Math.random().toString(36).slice(2,10);
 const input="w-full rounded-2xl bg-stone-50 px-4 py-3 text-sm outline-none ring-1 ring-stone-100 focus:ring-2 focus:ring-sky-200";
 function Card({children,className=""}:{children:React.ReactNode;className?:string}){return <section className={"rounded-3xl bg-white p-5 shadow-sm sm:p-6 "+className}>{children}</section>}
-function Heading({title,desc}:{title:string;desc:string}){return <div className="mb-7"><h1 className="text-2xl font-bold text-stone-800 sm:text-3xl">{title}</h1><p className="mt-2 text-sm text-stone-400">{desc}</p></div>}
+function Heading({title,desc}:{title:string;desc:string}){return <div className="mb-5"><h1 className="text-2xl font-bold text-stone-800 sm:text-3xl">{title}</h1><p className="mt-2 text-sm text-stone-400">{desc}</p></div>}
 function Empty({children}:{children:string}){return <p className="rounded-2xl bg-stone-50 p-6 text-center text-sm text-stone-400">{children}</p>}
 export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,assistantEnabled,onAssistantChange,avatar,onNameChange,onAvatarChange,onLogout,wallpaper,onWallpaperChange}:{tab:TabId;name:string;goal:number;onToast:(s:string)=>void;onNavigate:(tab:TabId)=>void;assistantEnabled:boolean;onAssistantChange:(v:boolean)=>void;avatar:string;onNameChange:(v:string)=>void;onAvatarChange:(f?:File)=>void;onLogout:()=>void;wallpaper:string;onWallpaperChange:(v:string)=>void}){
  const [data,setData]=useState<AppData>(blank),[ready,setReady]=useState(false);
