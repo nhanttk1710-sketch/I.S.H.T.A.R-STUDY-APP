@@ -9,7 +9,7 @@ const blank:AppData={name:"",avatar:"",subjects:[],dailyGoal:0,tasks:[],grades:[
 const uid=()=>Math.random().toString(36).slice(2,10);
 const input="w-full rounded-2xl bg-stone-50 px-4 py-3 text-sm outline-none ring-1 ring-stone-100 focus:ring-2 focus:ring-sky-200";
 function Card({children,className=""}:{children:React.ReactNode;className?:string}){return <section className={"rounded-3xl bg-white p-5 shadow-sm sm:p-6 "+className}>{children}</section>}
-function Heading({title,desc}:{title:string;desc:string}){return <div className="mb-4"><h1 className="text-3xl font-bold text-stone-800 sm:text-4xl">{title}</h1><p className="mt-2 text-sm text-stone-400">{desc}</p></div>}
+function Heading({title,desc}:{title:string;desc:string}){return <div className="mb-3"><h1 className="text-2xl font-bold text-stone-800 sm:text-3xl">{title}</h1><p className="mt-2 text-sm text-stone-400">{desc}</p></div>}
 function Empty({children}:{children:string}){return <p className="rounded-2xl bg-stone-50 p-6 text-center text-sm text-stone-400">{children}</p>}
 export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,assistantEnabled,onAssistantChange,avatar,onNameChange,onAvatarChange,onLogout,wallpaper,onWallpaperChange}:{tab:TabId;name:string;goal:number;onToast:(s:string)=>void;onNavigate:(tab:TabId)=>void;assistantEnabled:boolean;onAssistantChange:(v:boolean)=>void;avatar:string;onNameChange:(v:string)=>void;onAvatarChange:(f?:File)=>void;onLogout:()=>void;wallpaper:string;onWallpaperChange:(v:string)=>void}){
  const [data,setData]=useState<AppData>(blank),[ready,setReady]=useState(false);
@@ -65,8 +65,8 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
  if(tab==="overview")return <>
  <div className="mb-5">
   <div className="mb-2 flex items-center gap-2 text-sm font-bold tracking-wide text-amber-600"><span className="h-0.5 w-6 bg-amber-400"/><span>KHÔNG GIAN HỌC TẬP CỦA BẠN</span><span className="h-0.5 w-6 bg-amber-400"/></div>
-  <h1 className="text-3xl font-bold tracking-tight text-slate-800">Chào {name||"bạn"}! ✦</h1>
-  <p className="mt-2 text-base text-slate-400">Không gian học tập của bạn, chỉ hiển thị dữ liệu bạn đã thêm.</p>
+  <h1 className="text-2xl font-bold tracking-tight text-slate-800 sm:text-3xl">Chào {name||"bạn"}! ✦</h1>
+  <p className="mt-1 text-sm text-slate-400">Không gian học tập của bạn, chỉ hiển thị dữ liệu bạn đã thêm.</p>
  </div>
  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
   <Card className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm"><div className="flex items-center gap-4"><span className="grid h-14 w-14 place-items-center rounded-full bg-amber-50 text-amber-600"><CheckCircle2 size={25}/></span><div><p className="font-semibold text-slate-500">Nhiệm vụ</p><p className="mt-1 text-3xl font-bold text-slate-800">{completed}/{data.tasks.length}</p><p className="mt-1 text-sm text-slate-400">đã hoàn thành</p></div></div></Card>
