@@ -12,3 +12,13 @@ button{cursor:pointer}
 .soft-scrollbar::-webkit-scrollbar-thumb{background:#d6eaf2;border-radius:20px}
 /* Plus Jakarta Sans is the single typography family across the app. */
 :is(h1,h2,h3,h4,h5,h6,.font-display){font-family:var(--font-plus-jakarta),sans-serif}
+
+
+/* I.S.H.T.A.R palette refresh: warm ivory, slate and restrained amber */
+:root{--ishtar-accent:#B7791F;--ishtar-accent-strong:#996515;--ishtar-accent-soft:#FFF7E6;--ishtar-accent-line:#E8C77E}
+.bg-blue-600,.bg-blue-500,.bg-sky-500{background-color:var(--ishtar-accent)!important}
+.hover\\:bg-blue-700:hover,.hover\\:bg-blue-600:hover,.hover\\:bg-sky-600:hover{background-color:var(--ishtar-accent-strong)!important}
+.text-blue-600,.text-blue-500,.text-blue-700,.text-sky-600,.text-sky-500,.text-sky-700{color:var(--ishtar-accent)!important}
+.bg-blue-50,.bg-sky-50{background-color:var(--ishtar-accent-soft)!important}
+.border-blue-100,.border-blue-200,.border-blue-400,.border-sky-100{border-color:var(--ishtar-accent-line)!important}
+.ring-blue-200,.ring-blue-400{--tw-ring-color:var(--ishtar-accent-line)!important}
