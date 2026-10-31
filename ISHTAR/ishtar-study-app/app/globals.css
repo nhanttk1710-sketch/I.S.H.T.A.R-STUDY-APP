@@ -7,18 +7,39 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--page);color:var(--ink);font-family:var(--font-plus-jakarta),sans-serif;transition:background-color .2s,color .2s}.dark-theme{color-scheme:dark;--page:#111827;--surface:#1F2937;--ink:#F3F4F6;--muted:#9CA3AF;--line:#374151}.dark-theme body{background:var(--page);color:var(--ink)}.dark-theme .bg-white{background-color:var(--surface)!important}.dark-theme .bg-stone-50,.dark-theme .bg-slate-50{background-color:#273449!important}.dark-theme .text-stone-800,.dark-theme .text-stone-700,.dark-theme .text-slate-800{color:var(--ink)!important}.dark-theme .text-stone-400,.dark-theme .text-slate-400{color:var(--muted)!important}.dark-theme .border-stone-100,.dark-theme .border-slate-100,.dark-theme .border-blue-50{border-color:var(--line)!important}.dark-theme input,.dark-theme textarea,.dark-theme select{background:#273449!important;color:var(--ink)!important;border-color:var(--line)!important}.dark-theme header{background:#111827ee!important}.dark-theme aside{background:#172235!important}.dark-theme .bg-blue-50,.dark-theme .bg-sky-50{background:#24364f!important}
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
-::selection{background:#d9f0fb;color:#155e75}\n:root{--theme-primary:#3b82f6;--theme-soft:#eff6ff;--theme-border:#bfdbfe}\n:root[data-theme="green"]{--theme-primary:#10b981;--theme-soft:#ecfdf5;--theme-border:#a7f3d0}\n:root[data-theme="pink"]{--theme-primary:#ec4899;--theme-soft:#fdf2f8;--theme-border:#fbcfe8}\n.bg-sky-500,.bg-blue-500{background-color:var(--theme-primary)!important}\n.hover\\:bg-sky-600:hover,.hover\\:bg-blue-600:hover{filter:brightness(.92)}\n.bg-sky-50,.bg-blue-50{background-color:var(--theme-soft)}\n.border-sky-100,.border-blue-100{border-color:var(--theme-border)}\n.text-sky-600,.text-blue-600,.text-sky-700,.text-blue-700{color:var(--theme-primary)}
+::selection{background:#d9f0fb;color:#155e75}
+:root{--theme-primary:#3b82f6;--theme-soft:#eff6ff;--theme-border:#bfdbfe}
+:root[data-theme="green"]{--theme-primary:#10b981;--theme-soft:#ecfdf5;--theme-border:#a7f3d0}
+:root[data-theme="pink"]{--theme-primary:#ec4899;--theme-soft:#fdf2f8;--theme-border:#fbcfe8}
+.bg-sky-500,.bg-blue-500{background-color:var(--theme-primary)!important}
+.hover\\:bg-sky-600:hover,.hover\\:bg-blue-600:hover{filter:brightness(.92)}
+.bg-sky-50,.bg-blue-50{background-color:var(--theme-soft)}
+.border-sky-100,.border-blue-100{border-color:var(--theme-border)}
+.text-sky-600,.text-blue-600,.text-sky-700,.text-blue-700{color:var(--theme-primary)}
 .soft-scrollbar::-webkit-scrollbar{width:6px;height:6px}
 .soft-scrollbar::-webkit-scrollbar-thumb{background:#d6eaf2;border-radius:20px}
 /* Plus Jakarta Sans is the single typography family across the app. */
 :is(h1,h2,h3,h4,h5,h6,.font-display){font-family:var(--font-plus-jakarta),sans-serif}
 
 
-/* I.S.H.T.A.R palette refresh: warm ivory, slate and restrained amber */
-:root{--ishtar-accent:#B7791F;--ishtar-accent-strong:#996515;--ishtar-accent-soft:#FFF7E6;--ishtar-accent-line:#E8C77E}
+
+/* I.S.H.T.A.R — giao diện sáng, tối giản, điểm nhấn vàng hổ phách */
+:root{
+ --ishtar-accent:#C18A2B;
+ --ishtar-accent-strong:#9A6818;
+ --ishtar-accent-soft:#FFF7E8;
+ --ishtar-accent-line:#EAD7AE;
+ --ishtar-page:#F7F8FA;
+ --ishtar-ink:#202938;
+ --ishtar-muted:#718096;
+}
+body{background:var(--ishtar-page);color:var(--ishtar-ink)}
+/* Chuyển các nút hành động xanh sang vàng; giữ nguyên màu trạng thái riêng */
 .bg-blue-600,.bg-blue-500,.bg-sky-500{background-color:var(--ishtar-accent)!important}
 .hover\\:bg-blue-700:hover,.hover\\:bg-blue-600:hover,.hover\\:bg-sky-600:hover{background-color:var(--ishtar-accent-strong)!important}
-.text-blue-600,.text-blue-500,.text-blue-700,.text-sky-600,.text-sky-500,.text-sky-700{color:var(--ishtar-accent)!important}
+.text-blue-600,.text-blue-500,.text-blue-700,.text-sky-600,.text-sky-500,.text-sky-700{color:var(--ishtar-accent-strong)!important}
 .bg-blue-50,.bg-sky-50{background-color:var(--ishtar-accent-soft)!important}
 .border-blue-100,.border-blue-200,.border-blue-400,.border-sky-100{border-color:var(--ishtar-accent-line)!important}
 .ring-blue-200,.ring-blue-400{--tw-ring-color:var(--ishtar-accent-line)!important}
+.soft-scrollbar::-webkit-scrollbar-thumb{background:#dfcfaa;border-radius:20px}
+::selection{background:#f4e4c2;color:#694714}
