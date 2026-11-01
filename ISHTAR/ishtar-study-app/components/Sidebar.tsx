@@ -2,20 +2,9 @@
 
 import React from 'react';
 import {
-  LayoutGrid,
-  Calendar,
-  CheckSquare,
-  BarChart3,
-  Timer,
-  Folder,
-  Languages,
-  Layers,
-  Settings,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Sparkles
+  LayoutGrid, Calendar, CheckSquare, BarChart3, Timer, Folder,
+  Languages, Layers, Settings, PanelLeftClose, PanelLeftOpen, Sparkles
 } from 'lucide-react';
-import { IshtarLogo } from './IshtarLogo';
 import type { TabId } from './types';
 
 interface MenuItem {
@@ -29,7 +18,7 @@ interface SidebarProps {
   onChange: (tab: TabId) => void;
   collapsed?: boolean;
   onToggle?: () => void;
-  sealImageUrl?: string;
+  logoImageUrl?: string;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -37,7 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onChange,
   collapsed = false,
   onToggle,
-  sealImageUrl = "/ishtar-seal.png"
+  logoImageUrl = '/ishtar-logo.png'
 }) => {
   const menuItems: MenuItem[] = [
     { id: 'overview', label: 'Tổng quan', icon: LayoutGrid },
@@ -53,15 +42,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`${collapsed ? 'w-20 p-2' : 'w-60 p-3'} h-screen bg-white/95 backdrop-blur-md border-r border-slate-100 flex flex-col justify-between shrink-0 select-none z-20 transition-all duration-300`}
+      className={\`$\{
+        collapsed ? 'w-20 p-2' : 'w-60 p-3'
+      } h-screen bg-white/95 backdrop-blur-md border-r border-[#F5F5F4] flex flex-col justify-between shrink-0 select-none z-20 transition-all duration-300\`}
     >
       <div className="space-y-2">
-        <IshtarLogo className={collapsed ? "w-12" : "w-44"} collapsed={collapsed} sealImageUrl={sealImageUrl} />
+        {/* Dùng nguyên ảnh logo gộp đã được duyệt, không ghép lại bằng CSS */}
+        <div className={\`flex w-full items-center justify-center $\{collapsed ? 'py-2' : 'py-1'}\`}>
+          <img
+            src={logoImageUrl}
+            alt="I.S.H.T.A.R - It Shall Help Toward Academic Readiness"
+            className={collapsed ? 'h-12 w-14 object-contain' : 'h-[100px] w-44 object-contain'}
+          />
+        </div>
 
         {!collapsed && (
-          <div className="flex items-center gap-2 px-2 pt-2 pb-1 text-[11px] font-bold text-slate-400 tracking-wider uppercase">
+          <div className="flex items-center gap-2 px-2 pt-2 pb-1 text-[11px] font-bold tracking-wider text-[#78716C] uppercase">
             <span>KHÔNG GIAN HỌC TẬP</span>
-            <div className="h-[1px] flex-1 bg-gradient-to-r from-amber-200/60 to-transparent" />
+            <div className="h-[1px] flex-1 bg-[#F5F5F4]" />
             <span className="text-amber-400 text-xs">✦</span>
           </div>
         )}
@@ -74,23 +72,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
             return (
               <button
                 key={item.id}
-                onClick={() => onChange && onChange(item.id)}
+                onClick={() => onChange(item.id)}
                 title={collapsed ? item.label : undefined}
-                className={`w-full flex items-center ${
+                className={\`w-full flex items-center $\{
                   collapsed ? 'justify-center px-2 py-3' : 'justify-between px-3 py-2.5'
-                } rounded-xl text-xs font-medium transition-all duration-150 ${
+                } rounded-xl text-xs font-semibold transition-all duration-150 $\{
                   isActive
-                    ? 'bg-amber-100/70 border border-amber-200/60 text-amber-900 font-bold shadow-sm'
-                    : 'text-slate-600 hover:bg-amber-50/50 hover:text-amber-800'
-                }`}
+                    ? 'bg-[#FFF8E7] border border-[#FDE68A]/80 text-[#B45309] font-bold shadow-sm'
+                    : 'text-[#57534E] hover:text-[#B45309] hover:bg-[#FFFBEB]/60'
+                }\`}
               >
-                <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2.5'}`}>
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-600' : 'text-slate-400'}`} />
+                <div className={\`flex items-center $\{collapsed ? 'justify-center' : 'gap-2.5'}\`}>
+                  <Icon className={\`w-4 h-4 $\{isActive ? 'text-[#D97706]' : 'text-[#A8A29E]'}\`} />
                   {!collapsed && <span>{item.label}</span>}
                 </div>
 
                 {!collapsed && isActive && (
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400 animate-pulse" />
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
                 )}
               </button>
             );
@@ -98,12 +96,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      <div className="pt-2 border-t border-slate-100">
+      <div className="pt-2 border-t border-[#F5F5F4]">
         <button
           onClick={onToggle}
-          className={`w-full flex items-center ${
+          title={collapsed ? 'Mở rộng thanh bên' : undefined}
+          className={\`w-full flex items-center $\{
             collapsed ? 'justify-center px-2' : 'gap-2 px-3'
-          } py-2 text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors`}
+          } py-2 text-xs text-[#A8A29E] hover:text-[#57534E] hover:bg-[#FFFBEB]/60 rounded-lg transition-colors\`}
         >
           {collapsed ? (
             <PanelLeftOpen className="w-4 h-4" />
