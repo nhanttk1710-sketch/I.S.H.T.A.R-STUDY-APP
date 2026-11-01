@@ -1,5 +1,122 @@
 "use client";
-import {LayoutDashboard,CalendarDays,ClipboardList,ChartNoAxesColumnIncreasing,Timer,FolderOpen,Languages,Layers,Settings} from "lucide-react";
-import type {TabId} from "./types";
-const items:{id:TabId;label:string;icon:typeof LayoutDashboard}[]=[{id:"overview",label:"Tổng quan",icon:LayoutDashboard},{id:"schedule",label:"Thời khóa biểu",icon:CalendarDays},{id:"tasks",label:"Bài tập & Deadline",icon:ClipboardList},{id:"grades",label:"Điểm số & GPA",icon:ChartNoAxesColumnIncreasing},{id:"pomodoro",label:"Pomodoro",icon:Timer},{id:"resources",label:"Tài liệu",icon:FolderOpen},{id:"language",label:"Ngôn ngữ",icon:Languages},{id:"flashcards",label:"Flashcard",icon:Layers},{id:"settings",label:"Cài đặt",icon:Settings}];
-export default function Sidebar({active,onChange,collapsed,onToggle}:{active:TabId;onChange:(id:TabId)=>void;collapsed:boolean;onToggle:()=>void}){return <aside className={"sticky top-0 hidden h-screen shrink-0 flex-col border-r border-slate-100 bg-white px-4 py-6 transition-[width] duration-200 lg:flex "+(collapsed?"w-[88px]":"w-[280px]")}><div className="relative mb-9 flex items-center gap-3 overflow-visible px-2 pt-5"><svg aria-hidden="true" viewBox="0 0 120 120" className="pointer-events-none absolute -left-1 -top-8 z-0 h-[92px] w-[92px] opacity-75" fill="none"><g stroke="#E34B55" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"><path d="M60 8 48 42 60 34 72 42 60 8Z"/><path d="M13 45 47 49 60 60 73 49 107 45 80 68 60 62 40 68 13 45Z"/><path d="M60 34 47 72 60 108 73 72 60 34Z"/></g></svg><img src="/isthar-avatar.png" alt="I.S.H.T.A.R" className="relative z-10 h-10 w-10 rounded-full object-cover"/>{!collapsed&&<div className="relative z-10"><b className="tracking-widest text-slate-900">I.S.H.T.A.R</b><p className="text-[10px] tracking-wider text-slate-400">It Shall Help Toward Academic Readiness</p></div>}</div>{!collapsed&&<p className="mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">Không gian học tập</p>}<nav aria-label="Điều hướng chính" className="flex-1 space-y-1">{items.map(({id,label,icon:Icon})=>{const currentTab=String(active);const isActive=currentTab===id||(id==="overview"&&currentTab==="dashboard");return <button key={id} type="button" title={collapsed?label:undefined} aria-current={isActive?"page":undefined} onClick={()=>onChange(id)} className={"flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition-all duration-200 ease-in-out "+(isActive?"bg-[#FFF0D8] font-semibold text-[#D97706] shadow-[0_3px_12px_rgba(217,119,6,.08)]":"font-medium text-slate-500 hover:bg-amber-50/80 hover:text-amber-800")}><Icon size={19} strokeWidth={isActive?2.3:2}/>{!collapsed&&<span className="flex-1">{label}</span>}{!collapsed&&isActive&&<span className="text-lg leading-none text-amber-500">✦</span>}</button>})}</nav><button type="button" onClick={onToggle} className="rounded-xl px-3 py-3 text-left text-xs font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700">{collapsed?"Mở rộng":"Thu gọn thanh bên"}</button>{!collapsed&&<div className="mx-1 mt-5 rounded-2xl border border-orange-100 bg-gradient-to-br from-[#FFF9EF] to-white px-4 py-4 text-center text-sm italic leading-6 text-slate-700 shadow-[0_4px_16px_rgba(180,120,40,.04)]">“Dream bigger,<br/>Study harder.”</div>}</aside>}
+
+import React from 'react';
+import {
+  LayoutGrid,
+  Calendar,
+  CheckSquare,
+  BarChart3,
+  Timer,
+  Folder,
+  Languages,
+  Layers,
+  Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Sparkles
+} from 'lucide-react';
+import { IshtarLogo } from './IshtarLogo';
+import type { TabId } from './types';
+
+interface MenuItem {
+  id: TabId;
+  label: string;
+  icon: React.ElementType;
+}
+
+interface SidebarProps {
+  active: TabId;
+  onChange: (tab: TabId) => void;
+  collapsed?: boolean;
+  onToggle?: () => void;
+  sealImageUrl?: string;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  active = 'overview',
+  onChange,
+  collapsed = false,
+  onToggle,
+  sealImageUrl = "/ishtar-seal.png"
+}) => {
+  const menuItems: MenuItem[] = [
+    { id: 'overview', label: 'Tổng quan', icon: LayoutGrid },
+    { id: 'schedule', label: 'Thời khóa biểu', icon: Calendar },
+    { id: 'tasks', label: 'Bài tập & Deadline', icon: CheckSquare },
+    { id: 'grades', label: 'Điểm số & GPA', icon: BarChart3 },
+    { id: 'pomodoro', label: 'Pomodoro', icon: Timer },
+    { id: 'resources', label: 'Tài liệu', icon: Folder },
+    { id: 'language', label: 'Ngôn ngữ', icon: Languages },
+    { id: 'flashcards', label: 'Flashcard', icon: Layers },
+    { id: 'settings', label: 'Cài đặt', icon: Settings },
+  ];
+
+  return (
+    <aside
+      className={`${collapsed ? 'w-20 p-2' : 'w-60 p-3'} h-screen bg-white/95 backdrop-blur-md border-r border-slate-100 flex flex-col justify-between shrink-0 select-none z-20 transition-all duration-300`}
+    >
+      <div className="space-y-2">
+        <IshtarLogo className={collapsed ? "w-12" : "w-44"} collapsed={collapsed} sealImageUrl={sealImageUrl} />
+
+        {!collapsed && (
+          <div className="flex items-center gap-2 px-2 pt-2 pb-1 text-[11px] font-bold text-slate-400 tracking-wider uppercase">
+            <span>KHÔNG GIAN HỌC TẬP</span>
+            <div className="h-[1px] flex-1 bg-gradient-to-r from-amber-200/60 to-transparent" />
+            <span className="text-amber-400 text-xs">✦</span>
+          </div>
+        )}
+
+        <nav className="space-y-1">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = active === item.id;
+
+            return (
+              <button
+                key={item.id}
+                onClick={() => onChange && onChange(item.id)}
+                title={collapsed ? item.label : undefined}
+                className={`w-full flex items-center ${
+                  collapsed ? 'justify-center px-2 py-3' : 'justify-between px-3 py-2.5'
+                } rounded-xl text-xs font-medium transition-all duration-150 ${
+                  isActive
+                    ? 'bg-amber-100/70 border border-amber-200/60 text-amber-900 font-bold shadow-sm'
+                    : 'text-slate-600 hover:bg-amber-50/50 hover:text-amber-800'
+                }`}
+              >
+                <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2.5'}`}>
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-600' : 'text-slate-400'}`} />
+                  {!collapsed && <span>{item.label}</span>}
+                </div>
+
+                {!collapsed && isActive && (
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400 animate-pulse" />
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      <div className="pt-2 border-t border-slate-100">
+        <button
+          onClick={onToggle}
+          className={`w-full flex items-center ${
+            collapsed ? 'justify-center px-2' : 'gap-2 px-3'
+          } py-2 text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors`}
+        >
+          {collapsed ? (
+            <PanelLeftOpen className="w-4 h-4" />
+          ) : (
+            <>
+              <PanelLeftClose className="w-4 h-4" />
+              <span>Thu gọn thanh bên</span>
+            </>
+          )}
+        </button>
+      </div>
+    </aside>
+  );
+};
+
+export default Sidebar;
