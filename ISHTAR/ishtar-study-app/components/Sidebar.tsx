@@ -42,13 +42,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={\`$\{
+      className={`${
         collapsed ? 'w-20 p-2' : 'w-60 p-3'
-      } h-screen bg-white/95 backdrop-blur-md border-r border-[#F5F5F4] flex flex-col justify-between shrink-0 select-none z-20 transition-all duration-300\`}
+      } h-screen bg-white/95 backdrop-blur-md border-r border-[#F5F5F4] flex flex-col justify-between shrink-0 select-none z-20 transition-all duration-300`}
     >
       <div className="space-y-2">
         {/* Dùng nguyên ảnh logo gộp đã được duyệt, không ghép lại bằng CSS */}
-        <div className={\`flex w-full items-center justify-center $\{collapsed ? 'py-2' : 'py-1'}\`}>
+        <div className={`flex w-full items-center justify-center ${collapsed ? 'py-2' : 'py-1'}`}>
           <img
             src={logoImageUrl}
             alt="I.S.H.T.A.R - It Shall Help Toward Academic Readiness"
@@ -74,16 +74,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 onClick={() => onChange(item.id)}
                 title={collapsed ? item.label : undefined}
-                className={\`w-full flex items-center $\{
+                className={`w-full flex items-center ${
                   collapsed ? 'justify-center px-2 py-3' : 'justify-between px-3 py-2.5'
-                } rounded-xl text-xs font-semibold transition-all duration-150 $\{
+                } rounded-xl text-xs font-semibold transition-all duration-150 ${
                   isActive
                     ? 'bg-[#FFF8E7] border border-[#FDE68A]/80 text-[#B45309] font-bold shadow-sm'
                     : 'text-[#57534E] hover:text-[#B45309] hover:bg-[#FFFBEB]/60'
-                }\`}
+                }`}
               >
-                <div className={\`flex items-center $\{collapsed ? 'justify-center' : 'gap-2.5'}\`}>
-                  <Icon className={\`w-4 h-4 $\{isActive ? 'text-[#D97706]' : 'text-[#A8A29E]'}\`} />
+                <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-2.5'}`}>
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#D97706]' : 'text-[#A8A29E]'}`} />
                   {!collapsed && <span>{item.label}</span>}
                 </div>
 
@@ -100,9 +100,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <button
           onClick={onToggle}
           title={collapsed ? 'Mở rộng thanh bên' : undefined}
-          className={\`w-full flex items-center $\{
+          className={`w-full flex items-center ${
             collapsed ? 'justify-center px-2' : 'gap-2 px-3'
-          } py-2 text-xs text-[#A8A29E] hover:text-[#57534E] hover:bg-[#FFFBEB]/60 rounded-lg transition-colors\`}
+          } py-2 text-xs text-[#A8A29E] hover:text-[#57534E] hover:bg-[#FFFBEB]/60 rounded-lg transition-colors`}
         >
           {collapsed ? (
             <PanelLeftOpen className="w-4 h-4" />
