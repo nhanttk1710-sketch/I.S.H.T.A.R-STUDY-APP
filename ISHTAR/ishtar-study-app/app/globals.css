@@ -29,11 +29,11 @@ button{cursor:pointer}
  --ishtar-accent-strong:#9A6818;
  --ishtar-accent-soft:#FFF7E8;
  --ishtar-accent-line:#EAD7AE;
- --ishtar-page:#F7F8FA;
+ --ishtar-page:#FFFEFC;
  --ishtar-ink:#202938;
  --ishtar-muted:#718096;
 }
-body{background:var(--ishtar-page);color:var(--ishtar-ink)}
+body{background:var(--ishtar-page);color:var(--ishtar-ink)}\n/* Warm ivory surfaces used by the approved dashboard reference. */\n:root{--ishtar-page:#FFFEFC;--ishtar-surface:#FFFFFF;--ishtar-accent:#F28C00;--ishtar-accent-strong:#D97706;--ishtar-accent-soft:#FFF3E0;--ishtar-accent-line:#F6DFC0}\nhtml,body{min-height:100%;}\nbody{background-color:var(--ishtar-page)}
 /* Chuyển các nút hành động xanh sang vàng; giữ nguyên màu trạng thái riêng */
 .bg-blue-600,.bg-blue-500,.bg-sky-500{background-color:var(--ishtar-accent)!important}
 .hover\\:bg-blue-700:hover,.hover\\:bg-blue-600:hover,.hover\\:bg-sky-600:hover{background-color:var(--ishtar-accent-strong)!important}
