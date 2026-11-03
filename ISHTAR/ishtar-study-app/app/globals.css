@@ -23,33 +23,31 @@ button{cursor:pointer}
 
 
 
-/* I.S.H.T.A.R — giao diện sáng, tối giản, điểm nhấn vàng hổ phách */
+
+/* I.S.H.T.A.R — Figma dashboard 32:2 */
 :root{
- --ishtar-accent:#C18A2B;
- --ishtar-accent-strong:#9A6818;
- --ishtar-accent-soft:#FFF7E8;
- --ishtar-accent-line:#EAD7AE;
- --ishtar-page:#FFFEFC;
- --ishtar-ink:#202938;
- --ishtar-muted:#718096;
+  color-scheme:light;
+  --ishtar-page:#f8f7f4;
+  --ishtar-surface:#fff;
+  --ishtar-accent:#f59e0b;
+  --ishtar-accent-strong:#d97706;
+  --ishtar-accent-soft:#fff4dc;
+  --ishtar-accent-line:#f3dfbd;
+  --ishtar-ink:#292524;
+  --ishtar-muted:#948c7d;
 }
 body{background:var(--ishtar-page);color:var(--ishtar-ink)}
-/* Warm ivory surfaces used by the approved dashboard reference. */
-:root{--ishtar-page:#FFFEFC;--ishtar-surface:#FFFFFF;--ishtar-accent:#F28C00;--ishtar-accent-strong:#D97706;--ishtar-accent-soft:#FFF3E0;--ishtar-accent-line:#F6DFC0}
-html,body{min-height:100%;}
-body{background-color:var(--ishtar-page)}
-/* Chuyển các nút hành động xanh sang vàng; giữ nguyên màu trạng thái riêng */
+::selection{background:#f4e4c2;color:#694714}
 .bg-blue-600,.bg-blue-500,.bg-sky-500{background-color:var(--ishtar-accent)!important}
-.hover\:bg-blue-700:hover,.hover\:bg-blue-600:hover,.hover\:bg-sky-600:hover{background-color:var(--ishtar-accent-strong)!important}
+.hover\\:bg-blue-700:hover,.hover\\:bg-blue-600:hover,.hover\\:bg-sky-600:hover{background-color:var(--ishtar-accent-strong)!important}
 .text-blue-600,.text-blue-500,.text-blue-700,.text-sky-600,.text-sky-500,.text-sky-700{color:var(--ishtar-accent-strong)!important}
 .bg-blue-50,.bg-sky-50{background-color:var(--ishtar-accent-soft)!important}
 .border-blue-100,.border-blue-200,.border-blue-400,.border-sky-100{border-color:var(--ishtar-accent-line)!important}
 .ring-blue-200,.ring-blue-400{--tw-ring-color:var(--ishtar-accent-line)!important}
 .soft-scrollbar::-webkit-scrollbar-thumb{background:#dfcfaa;border-radius:20px}
-::selection{background:#f4e4c2;color:#694714}
 
-/* Approved Figma dashboard layout */
-.ishtar-sidebar{width:240px;min-width:240px;height:100vh;position:sticky;top:0;display:flex;flex-direction:column;align-items:stretch;gap:15px;padding:30px 20px 14px;background:linear-gradient(180deg,#fbbf24 0%,#d97706 100%);border-right:1px solid #fee47f;color:#fff;z-index:20;flex-shrink:0;transition:width .25s}
+/* Sidebar */
+.ishtar-sidebar{width:240px;min-width:240px;height:100vh;position:sticky;top:0;display:flex;flex-direction:column;align-items:stretch;gap:15px;padding:30px 20px 14px;background:linear-gradient(180deg,#ffc329 0%,#e58a00 55%,#d97706 100%);border-right:1px solid #fee47f;color:#fff;z-index:20;flex-shrink:0;transition:width .25s}
 .ishtar-sidebar--collapsed{width:76px;min-width:76px;padding:22px 10px}
 .ishtar-sidebar__brand{height:178px;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
 .ishtar-sidebar__brand>div{max-width:200px}
@@ -65,11 +63,18 @@ body{background-color:var(--ishtar-page)}
 .ishtar-sidebar__item span{flex:1}
 .ishtar-sidebar__sparkle{flex-shrink:0}
 .ishtar-sidebar__collapse{margin-top:auto;display:flex;align-items:center;gap:9px;padding:10px 5px;color:rgba(255,255,255,.9);font-size:12px;text-align:left}
-.ishtar-dashboard{max-width:1440px;margin:0 auto;padding:10px 28px 26px;color:#292524}
-.ishtar-dashboard__greeting{margin:0 0 17px}
+
+/* Topbar */
+.ishtar-topbar{height:120px!important;min-height:120px}
+.ishtar-topbar__search{height:60px}
+
+/* Dashboard main geometry */
+.ishtar-dashboard{position:relative;width:100%;max-width:1440px;margin:0 auto;padding:10px 23px 26px;color:#292524}
+.ishtar-dashboard__greeting,.ishtar-dashboard__stats,.ishtar-dashboard__content{width:calc(100% - 395px)}
+.ishtar-dashboard__greeting{margin:0 0 36px}
 .ishtar-dashboard__greeting h1{font-family:Georgia,serif;font-size:52px;line-height:1.1;font-weight:700;letter-spacing:-.025em;color:#292524}
-.ishtar-dashboard__greeting p{margin-top:9px;font-size:30px;line-height:1.25;color:#78716c;font-weight:500}
-.ishtar-dashboard__stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:17px}
+.ishtar-dashboard__greeting p{margin-top:9px;font-size:30px;line-height:1.25;color:#292524;font-weight:500}
+.ishtar-dashboard__stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:0 0 16px}
 .ishtar-stat{position:relative;min-height:104px;display:flex;align-items:center;gap:12px;padding:10px 16px 12px;background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(120,53,15,.04);overflow:hidden}
 .ishtar-stat:after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:#f59f0b}
 .ishtar-stat__icon{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;border-radius:11px;background:#fff4e0;color:#d97706}
@@ -78,21 +83,8 @@ body{background-color:var(--ishtar-page)}
 .ishtar-stat__copy strong{font-size:36px;line-height:1.1;color:#1f1f1f}
 .ishtar-stat__copy small{font-size:12px;color:#9e9e9e;white-space:nowrap}
 .ishtar-stat__star{position:absolute;right:12px;bottom:9px;color:#f59f0b;font-size:13px}
-.ishtar-dashboard__content{margin-bottom:16px}
-.ishtar-quick{background:#fff;border-radius:16px;padding:18px 24px 20px;box-shadow:0 3px 22px rgba(120,53,15,.04)}
-.ishtar-quick__heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
-.ishtar-quick__heading h2{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;color:#292524}
-.ishtar-quick__heading h2 svg{color:#f59f0b}
-.ishtar-quick__heading>span{font-size:14px;color:#948c7d}
-.ishtar-quick__actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.ishtar-quick__actions button{height:46px;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:14px;background:#fef3c7;color:#b85c0a;font-size:14px;font-weight:600;white-space:nowrap}
-.ishtar-quick__actions button:first-child{background:#f59f0b;color:#fff}
-@media(max-width:1100px){.ishtar-dashboard__greeting h1{font-size:40px}.ishtar-dashboard__greeting p{font-size:22px}.ishtar-dashboard{padding-inline:20px}}
-@media(max-width:760px){.ishtar-sidebar{width:76px;min-width:76px;padding-inline:9px}.ishtar-sidebar__brand{height:auto}.ishtar-sidebar__section,.ishtar-sidebar__item span,.ishtar-sidebar__sparkle,.ishtar-sidebar__collapse span{display:none}.ishtar-sidebar__item{justify-content:center;padding:0}.ishtar-dashboard__stats{grid-template-columns:1fr}.ishtar-dashboard__greeting h1{font-size:34px}.ishtar-dashboard__greeting p{font-size:18px}.ishtar-quick__actions{grid-template-columns:1fr 1fr}.ishtar-quick__heading{align-items:flex-start;flex-direction:column}}
-
-
-/* Figma 32:2 dashboard lower panels */
-.ishtar-dashboard-panels{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(220px,.95fr) minmax(300px,1.3fr);grid-template-rows:68px minmax(220px,1fr);gap:12px 18px;min-height:292px}
+.ishtar-dashboard__content{margin:0}
+.ishtar-dashboard-panels{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(220px,.95fr);grid-template-rows:68px minmax(208px,1fr);gap:12px 28px;min-height:292px}
 .ishtar-events-heading{grid-column:1;grid-row:1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:#fff;border:1px solid #f1e7d1;border-radius:14px}
 .ishtar-events-heading>div,.ishtar-month-heading>div{display:flex;align-items:center;gap:12px;color:#b45309}
 .ishtar-events-heading h2,.ishtar-month-heading h2{font-size:20px;font-weight:700;color:#292524}
@@ -109,173 +101,64 @@ body{background-color:var(--ishtar-page)}
 .ishtar-goals-panel h3{margin-bottom:17px;color:#7a6b57;font-size:12px;font-weight:700}
 .ishtar-goal-card{display:flex;width:100%;flex-direction:column;gap:5px;margin-bottom:10px;padding:12px;text-align:left;background:#fff9e8;border-radius:10px;color:#332617}
 .ishtar-goal-card b{font-size:13px}.ishtar-goal-card span{font-size:11px;color:#8b7962}
-.ishtar-month-panel{grid-column:3;grid-row:1/3;min-height:292px;padding:22px 20px;background:#fff;border:1px solid #f1e7d1;border-radius:14px;box-shadow:0 4px 18px rgba(120,53,15,.04)}
+.ishtar-month-panel{position:absolute;top:10px;right:23px;width:375px;height:389px;min-height:389px;padding:22px 20px;background:#fff;border:1px solid #f1e7d1;border-radius:14px;box-shadow:0 4px 18px rgba(120,53,15,.04)}
 .ishtar-month-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
-.ishtar-month-heading h2{font-size:18px;white-space:nowrap}.ishtar-month-heading>div:last-child{display:flex;gap:7px}
+.ishtar-month-heading h2{font-size:18px;white-space:nowrap}
+.ishtar-month-heading>div:last-child{display:flex;gap:7px}
 .ishtar-month-heading button{padding:4px;color:#b45309}
 .ishtar-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:center;gap:5px 2px;text-align:center}
-.ishtar-calendar-grid>b{padding:8px 0;font-size:14px;font-weight:700;color:#292524}.ishtar-calendar-grid .weekend{color:#b45309}
+.ishtar-calendar-grid>b{padding:8px 0;font-size:14px;font-weight:700;color:#292524}
+.ishtar-calendar-grid .weekend{color:#b45309}
 .ishtar-calendar-grid>button{position:relative;display:grid;place-items:center;width:34px;height:34px;margin:auto;border-radius:50%;font-size:14px;color:#292524}
-.ishtar-calendar-grid>button.selected{background:#b45309;color:#fff;font-weight:700}.ishtar-calendar-grid>button.today:not(.selected){outline:1px solid #f59e0b}
-.ishtar-calendar-grid>button i{position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:#f59e0b}.ishtar-calendar-grid>button.selected i{background:#fff}
-@media(max-width:1120px){.ishtar-dashboard-panels{grid-template-columns:minmax(0,1.4fr) minmax(210px,.9fr);grid-template-rows:68px minmax(210px,1fr) auto}.ishtar-month-panel{grid-column:1/3;grid-row:3}.ishtar-goals-panel{grid-column:2;grid-row:1/3}}
-@media(max-width:760px){.ishtar-dashboard-panels{grid-template-columns:1fr;grid-template-rows:auto auto auto auto}.ishtar-events-heading,.ishtar-events-list,.ishtar-goals-panel,.ishtar-month-panel{grid-column:1;grid-row:auto}.ishtar-events-list{min-height:140px}.ishtar-goals-panel{min-height:unset}.ishtar-month-panel{min-height:unset}.ishtar-calendar-grid{gap:7px 2px}}
+.ishtar-calendar-grid>button.selected{background:#b45309;color:#fff;font-weight:700}
+.ishtar-calendar-grid>button.today:not(.selected){outline:1px solid #f59e0b}
+.ishtar-calendar-grid>button i{position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:#f59e0b}
+.ishtar-calendar-grid>button.selected i{background:#fff}
 
-/* Dashboard alignment pass — match Figma frame 32:2 */
-.ishtar-dashboard{position:relative;max-width:1440px;margin:0 auto;padding:10px 23px 26px;color:#292524}
-.ishtar-dashboard__greeting,.ishtar-dashboard__stats,.ishtar-dashboard__content{width:calc(100% - 395px)}
-.ishtar-dashboard__greeting{margin:0 0 44px}
-.ishtar-dashboard__stats{margin-bottom:15px}
-.ishtar-dashboard__content{margin-bottom:30px}
-.ishtar-dashboard-panels{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(220px,.95fr);grid-template-rows:68px minmax(208px,1fr);gap:12px 28px;min-height:288px}
-.ishtar-events-heading{grid-column:1;grid-row:1}
-.ishtar-events-list{grid-column:1;grid-row:2}
-.ishtar-goals-panel{grid-column:2;grid-row:1/3;min-height:288px}
-.ishtar-month-panel{position:absolute;top:0;right:0;width:375px;height:389px;min-height:389px;padding:22px 20px}
-.ishtar-dashboard-panels{position:static}
-.ishtar-dashboard__content{position:static}
-.ishtar-quick{margin-top:0}
+/* Quick actions */
+.ishtar-quick{margin-top:26px;background:#fff;border-radius:16px;padding:18px 24px 20px;box-shadow:0 3px 22px rgba(120,53,15,.04)}
+.ishtar-quick__heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.ishtar-quick__heading h2{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;color:#292524}
+.ishtar-quick__heading h2 svg{color:#f59f0b}
+.ishtar-quick__heading>span{font-size:14px;color:#948c7d}
+.ishtar-quick__actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.ishtar-quick__actions button{height:46px;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:14px;background:#fef3c7;color:#b85c0a;font-size:14px;font-weight:600;white-space:nowrap}
+.ishtar-quick__actions button:first-child{background:#f59f0b;color:#fff}
+
+/* Keep other tabs usable on narrow screens */
 @media(max-width:1120px){
+ .ishtar-dashboard{padding:12px 18px}
  .ishtar-dashboard__greeting,.ishtar-dashboard__stats,.ishtar-dashboard__content{width:100%}
- .ishtar-month-panel{position:relative;top:auto;right:auto;width:100%;height:auto;min-height:292px;grid-column:1/3;grid-row:3}
- .ishtar-dashboard-panels{grid-template-columns:minmax(0,1.4fr) minmax(210px,.9fr);grid-template-rows:68px minmax(210px,1fr) auto}
- .ishtar-goals-panel{grid-column:2;grid-row:1/3}
-}
-@media(max-width:760px){
- .ishtar-dashboard__greeting{margin-bottom:20px}
- .ishtar-month-panel{grid-column:1;grid-row:auto}
- .ishtar-dashboard-panels{grid-template-columns:1fr;grid-template-rows:auto auto auto auto}
- .ishtar-events-heading,.ishtar-events-list,.ishtar-goals-panel,.ishtar-month-panel{grid-column:1;grid-row:auto}
- .ishtar-goals-panel{min-height:unset}
-}
-
-/* Compact desktop dashboard: fit the complete overview in one viewport */
-.ishtar-dashboard{
-  max-width:1440px;
-  padding:6px 18px 8px;
-  display:grid;
-  grid-template-columns:minmax(0,1fr);
-  grid-template-rows:auto auto minmax(220px,1fr) auto;
-  row-gap:9px;
-}
-.ishtar-dashboard__greeting{
-  width:100%;
-  margin:0;
-}
-.ishtar-dashboard__greeting h1{
-  font-size:34px;
-  line-height:1.08;
-  letter-spacing:-.02em;
-}
-.ishtar-dashboard__greeting p{
-  margin-top:4px;
-  font-size:17px;
-  line-height:1.2;
-}
-.ishtar-dashboard__stats{
-  width:100%;
-  gap:12px;
-  margin:0;
-}
-.ishtar-stat{
-  min-height:76px;
-  padding:8px 14px;
-  gap:10px;
-  border-radius:13px;
-}
-.ishtar-stat__icon{width:32px;height:32px;flex-basis:32px}
-.ishtar-stat__icon svg{width:19px;height:19px}
-.ishtar-stat__copy>span{font-size:12px}
-.ishtar-stat__copy strong{font-size:27px;line-height:1}
-.ishtar-stat__copy small{font-size:10px}
-.ishtar-stat__star{right:10px;bottom:6px;font-size:11px}
-.ishtar-dashboard__content{width:100%;margin:0;min-height:0}
-.ishtar-dashboard-panels{
-  display:grid;
-  grid-template-columns:minmax(0,1.35fr) minmax(190px,.82fr) minmax(260px,1.12fr);
-  grid-template-rows:44px minmax(154px,1fr);
-  gap:8px 12px;
-  min-height:210px;
-  height:100%;
-}
-.ishtar-events-heading{grid-column:1;grid-row:1;padding:8px 12px;border-radius:11px}
-.ishtar-events-heading h2{font-size:15px}
-.ishtar-events-heading>div{gap:8px}
-.ishtar-events-heading>div svg{width:18px;height:18px}
-.ishtar-events-heading>button{padding:6px 9px;font-size:10px}
-.ishtar-events-list{grid-column:1;grid-row:2;min-height:154px;padding:7px 10px}
-.ishtar-event-empty{padding:9px;font-size:11px}
-.ishtar-event-empty span,.ishtar-event-row small{font-size:10px}
-.ishtar-event-row{padding:8px 9px;font-size:11px}
-.ishtar-event-form{gap:5px;margin-bottom:6px}
-.ishtar-event-form input{padding:6px;font-size:10px}
-.ishtar-event-form button{padding:5px 8px;font-size:10px}
-.ishtar-goals-panel{grid-column:2;grid-row:1/3;min-height:210px;padding:12px;border-radius:11px}
-.ishtar-goals-panel h3{margin-bottom:10px;font-size:11px}
-.ishtar-goal-card{gap:3px;margin-bottom:7px;padding:9px;border-radius:8px}
-.ishtar-goal-card b{font-size:12px}
-.ishtar-goal-card span{font-size:10px}
-.ishtar-month-panel{
-  position:static;
-  grid-column:3;
-  grid-row:1/3;
-  width:auto;
-  height:auto;
-  min-height:210px;
-  padding:12px 14px;
-  border-radius:11px;
-}
-.ishtar-month-heading{margin-bottom:6px}
-.ishtar-month-heading h2{font-size:14px}
-.ishtar-month-heading>div{gap:7px}
-.ishtar-month-heading>div svg{width:17px;height:17px}
-.ishtar-month-heading button{padding:2px}
-.ishtar-calendar-grid{gap:1px;text-align:center}
-.ishtar-calendar-grid>b{padding:4px 0;font-size:10px}
-.ishtar-calendar-grid>button{width:25px;height:25px;font-size:11px}
-.ishtar-quick{
-  margin:0;
-  padding:10px 15px 12px;
-  border-radius:12px;
-}
-.ishtar-quick__heading{margin-bottom:7px}
-.ishtar-quick__heading h2{gap:7px;font-size:15px}
-.ishtar-quick__heading h2 svg{width:17px;height:17px}
-.ishtar-quick__heading>span{font-size:11px}
-.ishtar-quick__actions{gap:8px}
-.ishtar-quick__actions button{height:34px;gap:5px;border-radius:9px;font-size:11px}
-.ishtar-quick__actions button svg{width:14px;height:14px}
-@media(min-width:1200px) and (max-height:820px){
- .ishtar-dashboard{row-gap:6px;padding-top:4px;padding-bottom:4px}
- .ishtar-dashboard__greeting h1{font-size:30px}
- .ishtar-dashboard__greeting p{font-size:15px}
- .ishtar-stat{min-height:66px}
- .ishtar-dashboard-panels{min-height:190px;grid-template-rows:40px minmax(140px,1fr)}
- .ishtar-goals-panel,.ishtar-month-panel{min-height:190px}
- .ishtar-events-list{min-height:140px}
- .ishtar-calendar-grid>button{width:22px;height:22px}
- .ishtar-quick{padding:8px 13px}
- .ishtar-quick__actions button{height:30px}
-}
-@media(max-width:1100px){
- .ishtar-dashboard{display:block;padding:12px 18px}
- .ishtar-dashboard__greeting{margin-bottom:12px}
- .ishtar-dashboard__stats{margin-bottom:12px}
- .ishtar-dashboard-panels{height:auto;min-height:unset;grid-template-columns:minmax(0,1.2fr) minmax(190px,.8fr);grid-template-rows:42px minmax(145px,auto) auto}
+ .ishtar-dashboard__greeting{margin-bottom:16px}
+ .ishtar-dashboard__greeting h1{font-size:40px}
+ .ishtar-dashboard__greeting p{font-size:22px}
+ .ishtar-dashboard__stats{margin-bottom:14px}
+ .ishtar-dashboard-panels{grid-template-columns:minmax(0,1.2fr) minmax(190px,.8fr);grid-template-rows:48px minmax(160px,auto) auto;gap:10px;min-height:unset}
  .ishtar-events-heading{grid-column:1;grid-row:1}
- .ishtar-events-list{grid-column:1;grid-row:2}
- .ishtar-goals-panel{grid-column:2;grid-row:1/3}
- .ishtar-month-panel{grid-column:1/3;grid-row:3;min-height:unset}
- .ishtar-dashboard__content{margin-bottom:12px}
+ .ishtar-events-list{grid-column:1;grid-row:2;min-height:160px}
+ .ishtar-goals-panel{grid-column:2;grid-row:1/3;min-height:unset}
+ .ishtar-month-panel{position:static;grid-column:1/3;grid-row:3;width:100%;height:auto;min-height:280px;margin-top:4px}
+ .ishtar-quick{margin-top:14px}
 }
 @media(max-width:760px){
- .ishtar-dashboard__greeting h1{font-size:28px}
- .ishtar-dashboard__greeting p{font-size:15px}
+ .ishtar-sidebar{width:76px;min-width:76px;padding:22px 9px}
+ .ishtar-sidebar__brand{height:auto}
+ .ishtar-sidebar__section,.ishtar-sidebar__item span,.ishtar-sidebar__sparkle,.ishtar-sidebar__collapse span{display:none}
+ .ishtar-sidebar__item{justify-content:center;padding:0}
+ .ishtar-topbar{height:76px!important;min-height:76px}
+ .ishtar-dashboard{padding:12px}
+ .ishtar-dashboard__greeting{margin-bottom:14px}
+ .ishtar-dashboard__greeting h1{font-size:30px}
+ .ishtar-dashboard__greeting p{font-size:16px}
  .ishtar-dashboard__stats{grid-template-columns:1fr;gap:8px}
- .ishtar-stat{min-height:66px}
- .ishtar-dashboard-panels{grid-template-columns:1fr;grid-template-rows:auto}
+ .ishtar-stat{min-height:68px}
+ .ishtar-dashboard-panels{grid-template-columns:1fr;grid-template-rows:auto;gap:8px}
  .ishtar-events-heading,.ishtar-events-list,.ishtar-goals-panel,.ishtar-month-panel{grid-column:1;grid-row:auto}
  .ishtar-goals-panel{min-height:unset}
- .ishtar-month-panel{min-height:unset}
- .ishtar-quick__actions{grid-template-columns:1fr 1fr}
+ .ishtar-month-panel{min-height:unset;margin:0;padding:16px}
+ .ishtar-calendar-grid{gap:7px 2px}
+ .ishtar-quick{margin-top:12px;padding:14px}
+ .ishtar-quick__heading{align-items:flex-start;flex-direction:column;margin-bottom:10px}
+ .ishtar-quick__actions{grid-template-columns:1fr 1fr;gap:8px}
+ .ishtar-quick__actions button{height:40px;font-size:12px}
 }
