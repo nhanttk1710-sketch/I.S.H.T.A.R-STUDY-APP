@@ -62,40 +62,18 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
  const ding=()=>{try{const Ctx=window.AudioContext||(window as any).webkitAudioContext;const ctx=new Ctx();[880,1175].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=f;g.gain.setValueAtTime(.0001,ctx.currentTime+i*.18);g.gain.exponentialRampToValueAtTime(.18,ctx.currentTime+i*.18+.02);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+i*.18+.3);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*.18);o.stop(ctx.currentTime+i*.18+.32)});setTimeout(()=>ctx.close(),1000)}catch{}};
  useEffect(()=>{if(!running)return;timerDeadline.current=Date.now()+seconds*1000;const id=window.setInterval(()=>{const left=Math.max(0,Math.ceil(((timerDeadline.current||Date.now())-Date.now())/1000));setSeconds(left);if(left===0){clearInterval(id);timerDeadline.current=null;ding();setRunning(false);if(mode==="study"){setMode("break");setSeconds(300);onToast("Hết 25 phút! Chuông đã reo. Bắt đầu giờ nghỉ 5 phút nhé.")}else{setMode("study");setSeconds(1500);setRound(r=>r+1);onToast("Đã hết giờ nghỉ. Sẵn sàng cho chu kỳ tiếp theo!")}}},250);return()=>clearInterval(id)},[running,mode]);
  const completed=data.tasks.filter(t=>t.done).length;
- if(tab==="overview")return <>
- <div className="mb-5 min-w-0">
-  <div className="mb-2 flex items-center gap-2 text-xs font-bold tracking-[0.16em] text-amber-600"><span className="h-px w-7 bg-amber-400"/><span>KHÔNG GIAN HỌC TẬP CỦA BẠN</span></div>
-  <h1 className="text-[clamp(2.5rem,4vw,3.25rem)] font-extrabold leading-[1.12] tracking-tight text-slate-800">Chào {name||"bạn"}!</h1>
-  <p className="mt-2 text-[clamp(1.15rem,2vw,1.875rem)] font-medium leading-snug text-slate-500">Học tập là hành trình, và bạn đang đi đúng hướng.</p>
+ if(tab==="overview")return <div className="ishtar-dashboard">
+ <div className="ishtar-dashboard__greeting"><h1>Chào buổi sáng, {name||"bạn"}!</h1><p>Học tập là hành trình, và bạn đang đi đúng hướng.</p></div>
+ <div className="ishtar-dashboard__stats">
+  <section className="ishtar-stat"><div className="ishtar-stat__icon"><CheckCircle2 size={22}/></div><div className="ishtar-stat__copy"><span>Nhiệm vụ</span><strong>{completed}/{data.tasks.length}</strong><small>đã hoàn thành</small></div><span className="ishtar-stat__star">✦</span></section>
+  <section className="ishtar-stat"><div className="ishtar-stat__icon"><CalendarDays size={22}/></div><div className="ishtar-stat__copy"><span>Thời khóa biểu</span><strong>{data.sessions.length}</strong><small>buổi học đã lên lịch</small></div><span className="ishtar-stat__star">✦</span></section>
+  <section className="ishtar-stat"><div className="ishtar-stat__icon"><BookOpen size={22}/></div><div className="ishtar-stat__copy"><span>Kho từ vựng</span><strong>{data.words.length}</strong><small>từ do bạn tự thêm</small></div><span className="ishtar-stat__star">✦</span></section>
  </div>
- <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-  <section className="relative flex min-h-[124px] flex-col justify-between overflow-hidden rounded-2xl border border-orange-100/80 bg-white px-5 pb-4 pt-3 shadow-[0_4px_16px_rgba(30,41,59,.045)]">
-   <div className="flex items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#FFF1DC] text-[#F28C00]"><CheckCircle2 size={22}/></span><p className="text-sm font-semibold text-slate-500">Nhiệm vụ</p></div>
-   <p className="pl-[52px] text-[32px] font-extrabold leading-none text-slate-900">{completed}/{data.tasks.length}</p><p className="pl-[52px] text-xs text-slate-400">đã hoàn thành</p>
-   <Sparkles className="absolute bottom-4 right-4 text-amber-400" size={15}/><div className="absolute inset-x-0 bottom-0 h-[2px] bg-amber-400"/>
-  </section>
-  <section className="relative flex min-h-[124px] flex-col justify-between overflow-hidden rounded-2xl border border-orange-100/80 bg-white px-5 pb-4 pt-3 shadow-[0_4px_16px_rgba(30,41,59,.045)]">
-   <div className="flex items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-500"><CalendarDays size={22}/></span><p className="text-sm font-semibold text-slate-500">Thời khóa biểu</p></div>
-   <p className="pl-[52px] text-[32px] font-extrabold leading-none text-slate-900">{data.sessions.length}</p><p className="pl-[52px] text-xs text-slate-400">buổi học đã lên lịch</p>
-   <Sparkles className="absolute bottom-4 right-4 text-amber-400" size={15}/><div className="absolute inset-x-0 bottom-0 h-[2px] bg-amber-400"/>
-  </section>
-  <section className="relative flex min-h-[124px] flex-col justify-between overflow-hidden rounded-2xl border border-orange-100/80 bg-white px-5 pb-4 pt-3 shadow-[0_4px_16px_rgba(30,41,59,.045)]">
-   <div className="flex items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-500"><BookOpen size={22}/></span><p className="text-sm font-semibold text-slate-500">Kho từ vựng</p></div>
-   <p className="pl-[52px] text-[32px] font-extrabold leading-none text-slate-900">{data.words.length}</p><p className="pl-[52px] text-xs text-slate-400">từ do bạn tự thêm</p>
-   <Sparkles className="absolute bottom-4 right-4 text-amber-400" size={15}/><div className="absolute inset-x-0 bottom-0 h-[2px] bg-amber-400"/>
-  </section>
- </div>
- <div className="mt-4"><ImportantEventsCalendar goals={data.goals} onNavigate={onNavigate}/></div>
- <section className="mt-4 w-full rounded-2xl border border-orange-100/80 bg-white p-5 shadow-[0_4px_16px_rgba(30,41,59,.045)]">
-  <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2"><Flame className="text-amber-500" size={21}/><h3 className="font-bold text-slate-800">Bắt đầu nhanh</h3></div><span className="text-sm text-slate-400">Giữ nhịp học tập mỗi ngày</span></div>
-  <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-   <button type="button" onClick={()=>onNavigate("tasks")} className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-3 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-600"><Plus size={17}/>Thêm bài tập</button>
-   <button type="button" onClick={()=>onNavigate("schedule")} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FEF3C7] px-3 py-3 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"><CalendarDays size={17}/>Xếp lịch học</button>
-   <button type="button" onClick={()=>onNavigate("pomodoro")} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FEF3C7] px-3 py-3 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"><Play size={17}/>Bắt đầu Pomodoro</button>
-   <button type="button" onClick={()=>onNavigate("grades")} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FEF3C7] px-3 py-3 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"><Target size={17}/>Xem điểm</button>
-  </div>
- </section>
- </>;
+ <div className="ishtar-dashboard__content"><ImportantEventsCalendar goals={data.goals} onNavigate={onNavigate}/></div>
+ <section className="ishtar-quick"><div className="ishtar-quick__heading"><h2><Flame size={21}/>Bắt đầu nhanh</h2><span>Giữ nhịp học tập mỗi ngày</span></div><div className="ishtar-quick__actions">
+ <button onClick={()=>onNavigate("tasks")}><Plus size={17}/>Thêm bài tập</button><button onClick={()=>onNavigate("schedule")}><CalendarDays size={17}/>Xếp lịch học</button><button onClick={()=>onNavigate("pomodoro")}><Play size={17}/>Bắt đầu Pomodoro</button><button onClick={()=>onNavigate("grades")}><Target size={17}/>Xem điểm</button>
+ </div></section>
+ </div>;
  if(tab==="tasks"){
  const totalTasks=data.tasks.length,completedTasks=data.tasks.filter(t=>t.done).length,progress=totalTasks?Math.round(completedTasks/totalTasks*100):0;
  const todayKey=today||new Date().toISOString().slice(0,10),isOverdue=(t:Task)=>!t.done&&t.due.slice(0,10)<todayKey;
