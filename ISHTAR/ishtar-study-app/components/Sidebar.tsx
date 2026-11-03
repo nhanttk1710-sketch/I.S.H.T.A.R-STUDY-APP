@@ -13,6 +13,7 @@ const items:{id:TabId;label:string;icon:React.ElementType}[]=[
 {id:"resources",label:"Tài liệu",icon:Folder},
 {id:"language",label:"Ngôn ngữ",icon:Languages},
 {id:"flashcards",label:"Flashcard",icon:Layers},
+{id:"language",label:"Playlist",icon:Headphones},
 {id:"settings",label:"Cài đặt",icon:Settings},
 ];
 export const Sidebar:React.FC<SidebarProps>=({active,onChange,collapsed=false,onToggle,logoImageUrl="/ishtar-logo.webp"})=><aside className={`ishtar-sidebar ${collapsed?"ishtar-sidebar--collapsed":""}`}>
