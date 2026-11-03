@@ -51,3 +51,82 @@ main>div.mx-auto.w-full{max-width:none;padding-left:0!important;padding-right:0!
 @media(max-width:760px){.ishtar-dashboard{padding:12px 20px 22px}.ishtar-dashboard-panels{grid-template-columns:1fr;grid-template-rows:auto;min-height:0}.ishtar-events-heading,.ishtar-events-list,.ishtar-goals-panel,.ishtar-month-panel{grid-column:1;grid-row:auto}.ishtar-events-list{min-height:180px}.ishtar-goals-panel{min-height:0}.ishtar-month-panel{height:auto;min-height:280px}.ishtar-calendar-grid{gap:5px 2px}}
 @media(max-width:760px){.ishtar-topbar{height:76px!important;min-height:76px}.ishtar-dashboard{padding:12px}.ishtar-dashboard__greeting{margin-bottom:14px}.ishtar-dashboard__greeting h1{font-size:29px}.ishtar-dashboard__greeting p{font-size:15px}.ishtar-dashboard__stats{grid-template-columns:1fr;gap:8px}.ishtar-stat{min-height:84px;padding:12px 14px}.ishtar-dashboard-panels{grid-template-columns:1fr;grid-template-rows:auto;gap:8px}.ishtar-events-heading,.ishtar-events-list,.ishtar-goals-panel,.ishtar-month-panel{grid-column:1;grid-row:auto}.ishtar-events-list{min-height:130px}.ishtar-goals-panel{min-height:0}.ishtar-month-panel{min-height:0;padding:15px}.ishtar-calendar-grid{gap:7px 2px}.ishtar-quick{margin-top:12px;padding:13px}.ishtar-quick__heading{align-items:flex-start}.ishtar-quick__actions{grid-template-columns:1fr 1fr;gap:8px}.ishtar-quick__actions button{height:42px;font-size:12px}}
 @media(max-width:420px){.ishtar-sidebar{width:60px;min-width:60px;padding:16px 6px}.ishtar-sidebar__item{height:42px;min-height:42px}.ishtar-dashboard__stats{gap:7px}.ishtar-quick__heading h2{font-size:16px}.ishtar-quick__heading>span{font-size:10px}}
+
+
+/* Figma-aligned compact dashboard layout */
+@media (min-width:1101px){
+  .ishtar-dashboard{
+    width:606px;
+    max-width:606px;
+    min-height:0;
+    margin:0;
+    padding:10px 0 24px;
+  }
+  .ishtar-dashboard__greeting,
+  .ishtar-dashboard__stats{
+    width:406px;
+    max-width:406px;
+  }
+  .ishtar-dashboard__greeting{margin-bottom:14px}
+  .ishtar-dashboard__greeting h1{font-size:32px}
+  .ishtar-dashboard__greeting p{font-size:14px}
+  .ishtar-dashboard__stats{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .ishtar-stat{min-height:86px;padding:10px 11px 12px}
+  .ishtar-stat__copy{padding-right:28px}
+  .ishtar-stat__copy>span{font-size:11px}
+  .ishtar-stat__copy strong{font-size:25px}
+  .ishtar-stat__copy small{font-size:10px}
+  .ishtar-dashboard__content{width:606px;max-width:606px}
+  .ishtar-dashboard-panels{
+    width:606px;
+    max-width:606px;
+    grid-template-columns:minmax(0,406px) minmax(0,184px);
+    grid-template-rows:52px 211px;
+    gap:10px 16px;
+    min-height:273px;
+  }
+  .ishtar-events-heading{grid-column:1;grid-row:1}
+  .ishtar-events-list{grid-column:1;grid-row:2;min-height:211px}
+  .ishtar-goals-panel{grid-column:2;grid-row:1/3;min-height:273px}
+  .ishtar-month-panel{
+    grid-column:auto;
+    grid-row:auto;
+    position:absolute;
+    top:-110px;
+    right:0;
+    width:195px;
+    height:250px;
+    min-height:250px;
+    z-index:4;
+    padding:12px 9px;
+  }
+  .ishtar-month-heading{gap:3px;margin-bottom:7px}
+  .ishtar-month-heading>div{gap:4px}
+  .ishtar-month-heading h2{font-size:12px}
+  .ishtar-month-heading svg{width:15px;height:15px}
+  .ishtar-month-heading button{padding:2px}
+  .ishtar-calendar-grid{gap:2px 0}
+  .ishtar-calendar-grid>b{padding:4px 0;font-size:10px}
+  .ishtar-calendar-grid>button{width:22px;height:22px;font-size:10px}
+  .ishtar-quick{
+    width:606px;
+    max-width:606px;
+    margin-top:24px;
+    padding:13px 16px 15px;
+  }
+  .ishtar-quick__heading{margin-bottom:9px}
+  .ishtar-quick__heading h2{font-size:16px}
+  .ishtar-quick__heading>span{font-size:11px}
+  .ishtar-quick__actions{gap:8px}
+  .ishtar-quick__actions button{height:40px;font-size:11px;gap:5px}
+}
+@media (min-width:761px) and (max-width:1100px){
+  .ishtar-dashboard{width:100%;max-width:none;padding:8px 16px 14px}
+  .ishtar-dashboard__greeting,.ishtar-dashboard__stats,.ishtar-dashboard__content{width:100%;max-width:none}
+  .ishtar-dashboard-panels{grid-template-columns:minmax(0,1fr) minmax(108px,.62fr) minmax(195px,.88fr);grid-template-rows:30px 104px}
+  .ishtar-month-panel{position:relative;top:-120px;width:auto;height:205px;min-height:205px}
+}
