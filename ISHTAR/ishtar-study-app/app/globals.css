@@ -82,6 +82,7 @@ main>div.mx-auto.w-full{max-width:none;padding-left:0!important;padding-right:0!
   .ishtar-stat__copy small{font-size:10px}
   .ishtar-dashboard__content{width:606px;max-width:606px}
   .ishtar-dashboard-panels{
+    position:relative;
     width:606px;
     max-width:606px;
     grid-template-columns:minmax(0,406px) minmax(0,184px);
