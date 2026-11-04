@@ -69,7 +69,7 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
   <section className="ishtar-stat"><div className="ishtar-stat__icon"><CalendarDays size={22}/></div><div className="ishtar-stat__copy"><span>Thời khóa biểu</span><strong>{data.sessions.length}</strong><small>buổi học đã lên lịch</small></div><span className="ishtar-stat__star">✦</span></section>
   <section className="ishtar-stat"><div className="ishtar-stat__icon"><BookOpen size={22}/></div><div className="ishtar-stat__copy"><span>Kho từ vựng</span><strong>{data.words.length}</strong><small>từ do bạn tự thêm</small></div><span className="ishtar-stat__star">✦</span></section>
  </div>
- <div className="ishtar-dashboard__content"><ImportantEventsCalendar goals={data.goals} events={data.events} onEventsChange={(events)=>setData(d=>({...d,events}))} onNavigate={onNavigate}/></div>
+ <div className="ishtar-dashboard__content"><ImportantEventsCalendar goals={data.goals} events={data.events} tasks={data.tasks} onEventsChange={(events)=>setData(d=>({...d,events}))} onNavigate={onNavigate}/></div>
  <section className="ishtar-quick"><div className="ishtar-quick__heading"><h2><Flame size={21}/>Bắt đầu nhanh</h2><span>Giữ nhịp học tập mỗi ngày</span></div><div className="ishtar-quick__actions">
  <button onClick={()=>onNavigate("tasks")}><Plus size={17}/>Thêm bài tập</button><button onClick={()=>onNavigate("schedule")}><CalendarDays size={17}/>Xếp lịch học</button><button onClick={()=>onNavigate("pomodoro")}><Play size={17}/>Bắt đầu Pomodoro</button><button onClick={()=>onNavigate("grades")}><Target size={17}/>Xem điểm</button>
  </div></section>
