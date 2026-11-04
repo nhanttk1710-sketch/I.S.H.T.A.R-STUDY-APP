@@ -61,8 +61,9 @@ main>div.mx-auto.w-full{max-width:none;padding-left:0!important;padding-right:0!
   .ishtar-dashboard{
     display:grid;
     grid-template-columns:minmax(0,1fr) minmax(300px,380px);
+    grid-template-rows:auto auto auto minmax(0,1fr) auto;
     column-gap:16px;row-gap:0;align-items:start;
-    width:100%;max-width:none;min-height:0;margin:0;padding:16px 24px 24px;
+    width:100%;max-width:1180px;min-height:0;margin:0 auto;padding:16px 24px 24px;
   }
   .ishtar-dashboard__content,.ishtar-dashboard-panels{display:contents}
   .ishtar-dashboard__greeting{grid-column:1;grid-row:1;width:auto;max-width:none;margin:0 0 20px}
@@ -73,11 +74,16 @@ main>div.mx-auto.w-full{max-width:none;padding-left:0!important;padding-right:0!
   .ishtar-stat__icon{top:50%;transform:translateY(-50%);left:14px;right:auto;width:38px;height:38px;border-radius:12px}
   .ishtar-stat__copy{padding-left:52px;padding-right:6px}
   .ishtar-stat__star{font-size:0}.ishtar-stat__star:after{content:"▾";font-size:14px}
-  .ishtar-event-empty{display:flex;flex-direction:column;align-items:flex-start;text-align:left;width:max-content;min-width:46%;max-width:70%;padding:10px 14px}
+  .ishtar-events-list{align-content:start}
+  .ishtar-event-empty{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;align-self:start;height:auto;min-height:0;text-align:left;width:max-content;min-width:46%;max-width:70%;padding:10px 14px}
   .ishtar-events-heading{grid-column:1;grid-row:3;margin-bottom:10px}
-  .ishtar-events-list{grid-column:1;grid-row:4;min-height:310px}
-  .ishtar-side-col{display:flex;flex-direction:column;gap:12px;grid-column:2;grid-row:1/5;align-self:stretch;height:0;min-height:100%}
-  .ishtar-goals-panel{flex:1;min-height:0;grid-column:auto;grid-row:auto}
+  .ishtar-events-list{grid-column:1;grid-row:4;align-self:stretch;min-height:150px}
+  .ishtar-side-col{display:flex;flex-direction:column;gap:12px;grid-column:2;grid-row:1/5;align-self:stretch;min-height:0}
+  .ishtar-goals-panel{flex:1 1 auto;min-width:0;min-height:0;grid-column:auto;grid-row:auto;padding:14px}
+  .ishtar-goals-panel h3{margin:0 0 10px;font-size:11px}
+  .ishtar-goal-card{min-height:0;padding:9px 12px;gap:2px;margin:0 0 8px}
+  .ishtar-goal-card b{font-size:13px;line-height:1.2}
+  .ishtar-goal-card span{font-size:11px;line-height:1.2}
   .ishtar-month-panel{
     position:static;grid-column:auto;grid-row:auto;flex-shrink:0;
     width:auto;height:auto;min-height:0;z-index:auto;padding:20px 22px;
@@ -113,10 +119,10 @@ main>div.mx-auto.w-full{max-width:none;padding-left:0!important;padding-right:0!
   .ishtar-stat__copy small{font-size:10px}
   .ishtar-events-heading{padding:7px 14px;margin-bottom:8px}
   .ishtar-events-heading h2{font-size:16px}
-  .ishtar-events-list{min-height:200px;padding:10px 14px}
+  .ishtar-events-list{min-height:110px;padding:10px 14px}
   .ishtar-goals-panel{padding:11px}
+  .ishtar-goal-card{padding:7px 10px;margin-bottom:6px}
   .ishtar-goals-panel h3{margin-bottom:8px}
-  .ishtar-goal-card{min-height:42px;margin-bottom:6px;padding:7px 9px}
   .ishtar-month-panel{padding:12px 16px}
   .ishtar-month-heading{margin-bottom:6px}
   .ishtar-month-heading h2{font-size:15px}
@@ -147,8 +153,8 @@ main>div.mx-auto.w-full{max-width:none;padding-left:0!important;padding-right:0!
 
 /* Sidebar brand (Figma 32:232): gold circle with the crimson seal, name and meaning below */
 .ishtar-sidebar__brand{height:auto;flex-shrink:0;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;overflow:visible;text-align:center}
-.ishtar-brand__emblem{width:var(--emb,108px);height:var(--emb,108px);flex-shrink:0;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 50% 28%,#fcd668 0%,#f4a81d 55%,#d9820a 100%);border:3px solid #fde68a;box-shadow:0 4px 14px rgba(120,53,15,.28),inset 0 0 10px rgba(255,255,255,.25)}
-.ishtar-brand__emblem img{width:68%;height:68%;max-height:none;object-fit:contain}
+.ishtar-brand__emblem{width:var(--emb,108px);height:var(--emb,108px);flex-shrink:0;display:grid;place-items:center;border-radius:50%;background:#f7a928;border:2px solid #fde9b0;box-shadow:none}
+.ishtar-brand__emblem img{width:70%;height:70%;max-height:none;object-fit:contain;filter:brightness(1.6) saturate(1.5)}
 .ishtar-brand__text b{display:block;padding-left:.1em;font-size:var(--name,26px);line-height:1.15;font-weight:800;letter-spacing:.1em;color:#fff}
 .ishtar-brand__text p{max-width:165px;margin:2px auto 0;font-size:var(--tag,11px);line-height:1.25;font-weight:500;color:rgba(255,255,255,.92)}
 .ishtar-sidebar--collapsed{--emb:48px}
