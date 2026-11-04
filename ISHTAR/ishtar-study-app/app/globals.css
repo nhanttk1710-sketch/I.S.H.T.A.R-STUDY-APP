@@ -180,3 +180,49 @@ body{background:var(--ishtar-page);color:var(--ishtar-ink)}
 /* Slightly off-white canvas keeps white cards and search field visibly distinct. */
 [class~="bg-[#FFFEFC]"]{background-color:#FAFAFA!important}
 [class*="bg-[#FFFEFC]/95"]{background-color:rgba(250,250,250,.95)!important}
+
+
+/* Shared content frame for non-dashboard pages.
+   Keeps page geometry independent from the fixed sidebar and topbar. */
+.ishtar-content-shell{
+  width:100%;
+  max-width:1440px;
+  min-width:0;
+  margin-inline:auto;
+  padding:0 24px 28px;
+}
+.ishtar-content-shell > *{
+  min-width:0;
+  max-width:100%;
+}
+.ishtar-content-shell[data-active-tab]:not([data-active-tab="overview"]) > *{
+  width:100%;
+}
+.ishtar-content-shell[data-active-tab]:not([data-active-tab="overview"]) h1{
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+.ishtar-content-shell[data-active-tab]:not([data-active-tab="overview"]) section{
+  min-width:0;
+}
+.ishtar-content-shell[data-active-tab]:not([data-active-tab="overview"]) form{
+  min-width:0;
+}
+.ishtar-content-shell[data-active-tab]:not([data-active-tab="overview"]) input,
+.ishtar-content-shell[data-active-tab]:not([data-active-tab="overview"]) select,
+.ishtar-content-shell[data-active-tab]:not([data-active-tab="overview"]) textarea{
+  min-width:0;
+  max-width:100%;
+}
+.ishtar-content-shell[data-active-tab]:not([data-active-tab="overview"]) .overflow-x-auto{
+  max-width:100%;
+  overscroll-behavior-x:contain;
+}
+@media(max-width:900px){
+  .ishtar-content-shell{padding-inline:18px;padding-bottom:24px}
+}
+@media(max-width:640px){
+  .ishtar-content-shell{padding-inline:12px;padding-bottom:18px}
+  .ishtar-content-shell[data-active-tab]:not([data-active-tab="overview"]) h1{font-size:1.5rem;line-height:1.25}
+  .ishtar-content-shell[data-active-tab]:not([data-active-tab="overview"]) section{padding:16px}
+}
