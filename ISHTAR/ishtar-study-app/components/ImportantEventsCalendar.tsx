@@ -1,33 +1,41 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
-import {CalendarDays,ChevronLeft,ChevronRight,Plus,Trash2} from "lucide-react";
-import type {Goal,TabId} from "./types";
-type ImportantEvent={id:string;title:string;date:string};
-const key="ishtar_important_events";
+import {CalendarDays,ChevronLeft,ChevronRight,Plus,Trash2,CheckCircle2,BookOpen,Flag,CalendarHeart,Filter} from "lucide-react";
+import type {Goal,TabId,Task,Deadline,PersonalEvent} from "./types";
 const pad=(n:number)=>String(n).padStart(2,"0");
 const dateKey=(d:Date)=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const uid=()=>Math.random().toString(36).slice(2,10);
 const monthNames=["Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6","Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12"];
-export default function ImportantEventsCalendar({goals=[],onNavigate}:{goals?:Goal[];onNavigate?:(tab:TabId)=>void}){
- const now=new Date();const [events,setEvents]=useState<ImportantEvent[]>([]);const [ready,setReady]=useState(false);
- const [month,setMonth]=useState(new Date(now.getFullYear(),now.getMonth(),1));const [selected,setSelected]=useState(dateKey(now));
- const [formOpen,setFormOpen]=useState(false);const [title,setTitle]=useState("");const [date,setDate]=useState(dateKey(now));
- useEffect(()=>{try{const raw=localStorage.getItem(key);if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed))setEvents(parsed.filter(x=>x&&typeof x.title==="string"&&typeof x.date==="string"))}}catch{}setReady(true)},[]);
- useEffect(()=>{if(ready){try{localStorage.setItem(key,JSON.stringify(events))}catch{}}},[events,ready]);
+type Props={goals?:Goal[];tasks:Task[];deadlines:Deadline[];events:PersonalEvent[];onDataChange:(v:{tasks:Task[];deadlines:Deadline[];events:PersonalEvent[]})=>void;onNavigate?:(tab:TabId)=>void};
+export default function ImportantEventsCalendar({goals=[],tasks,deadlines,events,onDataChange,onNavigate}:Props){
+ const now=new Date();const [month,setMonth]=useState(new Date(now.getFullYear(),now.getMonth(),1));const [selected,setSelected]=useState(dateKey(now));
+ const [formOpen,setFormOpen]=useState(false);const [kind,setKind]=useState<"deadline"|"event">("deadline");const [title,setTitle]=useState("");const [date,setDate]=useState(dateKey(now));const [time,setTime]=useState("23:59");const [filter,setFilter]=useState<"all"|"deadline"|"task"|"event">("all");
  const year=month.getFullYear(),monthIndex=month.getMonth(),daysInMonth=new Date(year,monthIndex+1,0).getDate(),offset=(new Date(year,monthIndex,1).getDay()+6)%7;
- const eventDates=new Set(events.map(e=>e.date));const cells=useMemo(()=>Array.from({length:offset+daysInMonth},(_,i)=>i<offset?null:i-offset+1),[offset,daysInMonth]);
- const selectedEvents=events.filter(e=>e.date===selected).sort((a,b)=>a.title.localeCompare(b.title));
- const addEvent=(e:React.FormEvent)=>{e.preventDefault();if(!title.trim()||!date)return;setEvents(v=>[...v,{id:uid(),title:title.trim(),date}]);setSelected(date);const d=new Date(date+"T12:00:00");setMonth(new Date(d.getFullYear(),d.getMonth(),1));setTitle("");setFormOpen(false)};
+ const cells=useMemo(()=>Array.from({length:offset+daysInMonth},(_,i)=>i<offset?null:i-offset+1),[offset,daysInMonth]);
+ const selectedTasks=tasks.filter(t=>t.due===selected&&!t.done);
+ const selectedDeadlines=deadlines.filter(d=>d.date===selected&&!d.done);
+ const selectedEvents=events.filter(e=>e.date===selected);
+ const hasKind=(day:string)=>({deadline:deadlines.some(x=>x.date===day&&!x.done)||tasks.some(x=>x.due===day&&!x.done),task:tasks.some(x=>(x.plannedDate===day||(!x.due&&x.plannedDate===day))&&!x.done),event:events.some(x=>x.date===day) });
+ const dates=Array.from({length:daysInMonth},(_,i)=>dateKey(new Date(year,monthIndex,i+1)));
+ const selectedItems=[
+ ...selectedDeadlines.map(x=>({id:x.id,title:x.title,kind:"deadline" as const,time:x.time||"23:59",done:x.done,taskId:x.taskId})),
+ ...selectedTasks.filter(t=>!selectedDeadlines.some(d=>d.taskId===t.id)).map(x=>({id:x.id,title:x.title,kind:"task" as const,time:"",done:x.done,taskId:x.id})),
+ ...selectedEvents.map(x=>({id:x.id,title:x.title,kind:"event" as const,time:x.allDay?"Cả ngày":x.time||"",done:false,taskId:undefined}))
+ ].filter(x=>filter==="all"||x.kind===filter).sort((a,b)=>({deadline:0,task:1,event:2}[a.kind]-{deadline:0,task:1,event:2}[b.kind])||a.time.localeCompare(b.time));
+ const add=(e:React.FormEvent)=>{e.preventDefault();if(!title.trim()||!date)return;if(kind==="deadline")onDataChange({tasks,deadlines:[...deadlines,{id:uid(),title:title.trim(),date,time,done:false}],events});else onDataChange({tasks,deadlines,events:[...events,{id:uid(),title:title.trim(),date,time,allDay:false,repeat:"none"}]});setSelected(date);const d=new Date(date+"T12:00:00");setMonth(new Date(d.getFullYear(),d.getMonth(),1));setTitle("");setFormOpen(false)};
+ const toggle=(item:typeof selectedItems[number])=>{if(item.kind==="deadline")onDataChange({tasks,deadlines:deadlines.map(d=>d.id===item.id?{...d,done:!d.done}:d),events});else if(item.kind==="task")onDataChange({tasks:tasks.map(t=>t.id===item.id?{...t,done:!t.done}:t),deadlines:deadlines.map(d=>d.taskId===item.id?{...d,done:!d.done}:d),events});else onDataChange({tasks,deadlines,events:events.filter(e=>e.id!==item.id)})};
  const move=(delta:number)=>setMonth(new Date(year,monthIndex+delta,1));
  const goalItems=goals.length?goals:[{id:"sat-template",exam:"SAT",target:"",examDate:"",createdAt:"",scoreMin:400,scoreMax:1600,scores:[]},{id:"ielts-template",exam:"IELTS",target:"",examDate:"",createdAt:"",scoreMin:1,scoreMax:9,scores:[]}];
  return <div className="ishtar-dashboard-panels">
   <section className="ishtar-events-heading"><div><CalendarDays size={22}/><h2>Sự kiện & Cột mốc</h2></div><button type="button" onClick={()=>{setDate(selected);setFormOpen(v=>!v)}}><Plus size={15}/>Thêm mốc</button></section>
-  <section className="ishtar-events-list">{formOpen&&<form onSubmit={addEvent} className="ishtar-event-form"><input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Tên sự kiện" required/><input type="date" value={date} onChange={e=>setDate(e.target.value)} required/><button type="submit">Lưu</button></form>}{selectedEvents.length?selectedEvents.map(event=><div key={event.id} className="ishtar-event-row"><div><b>{event.title}</b><small>{selected.split("-").reverse().join("/")}</small></div><button aria-label="Xóa sự kiện" onClick={()=>setEvents(v=>v.filter(x=>x.id!==event.id))}><Trash2 size={15}/></button></div>):<div className="ishtar-event-empty"><b>Chưa có sự kiện</b><span>Thêm lịch thi hoặc deadline của bạn</span></div>}</section>
-  <div className="ishtar-side-col">
-  <section className="ishtar-month-panel"><div className="ishtar-month-heading"><div><CalendarDays size={22}/><h2>{monthNames[monthIndex]}, {year}</h2></div><div><button type="button" aria-label="Tháng trước" onClick={()=>move(-1)}><ChevronLeft size={17}/></button><button type="button" aria-label="Tháng sau" onClick={()=>move(1)}><ChevronRight size={17}/></button></div></div>
-   <div className="ishtar-calendar-grid">{["T2","T3","T4","T5","T6","T7","CN"].map((d,i)=><b key={d} className={i>4?"weekend":""}>{d}</b>)}{cells.map((day,i)=>{if(!day)return <span key={"blank-"+i}/>;const value=dateKey(new Date(year,monthIndex,day));const weekend=new Date(year,monthIndex,day).getDay()===0||new Date(year,monthIndex,day).getDay()===6;return <button key={value} type="button" onClick={()=>setSelected(value)} className={(selected===value?"selected ":"")+(value===dateKey(now)?"today ":"")+(eventDates.has(value)?"has-event ":"")+(weekend?"weekend":"")}>{day}{eventDates.has(value)&&<i/>}</button>})}</div>
+  <section className="ishtar-events-list">
+   <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><b className="text-sm">{new Date(selected+"T12:00:00").toLocaleDateString("vi-VN",{weekday:"long",day:"numeric",month:"long"})}</b><p className="text-xs text-stone-400">{selectedItems.length} mục trong ngày</p></div><select aria-label="Lọc nội dung" value={filter} onChange={e=>setFilter(e.target.value as typeof filter)} className="rounded-lg border border-amber-100 bg-white px-2 py-1 text-xs"><option value="all">Tất cả</option><option value="deadline">Deadline</option><option value="task">Bài tập</option><option value="event">Sự kiện</option></select></div>
+   {formOpen&&<form onSubmit={add} className="ishtar-event-form"><select value={kind} onChange={e=>setKind(e.target.value as typeof kind)}><option value="deadline">Deadline</option><option value="event">Sự kiện cá nhân</option></select><input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Tên nội dung" required/><input type="date" value={date} onChange={e=>setDate(e.target.value)} required/><input type="time" value={time} onChange={e=>setTime(e.target.value)}/><button type="submit">Lưu</button></form>}
+   {selectedItems.length?selectedItems.map(item=><div key={item.kind+item.id} className="ishtar-event-row"><button type="button" aria-label="Đánh dấu hoàn thành" onClick={()=>toggle(item)} className="text-emerald-600"><CheckCircle2 size={17}/></button><div className="min-w-0 flex-1"><b>{item.title}</b><small>{item.time||"Chưa đặt giờ"}</small></div><span className={"ishtar-event-type ishtar-event-type--"+item.kind}>{item.kind==="deadline"?"Deadline":item.kind==="task"?"Bài tập":"Sự kiện"}</span>{item.kind==="event"&&<button aria-label="Xóa sự kiện" onClick={()=>toggle(item)}><Trash2 size={15}/></button>}</div>):<div className="ishtar-event-empty"><b>Chưa có nội dung</b><span>Chọn ngày khác hoặc thêm Deadline, Sự kiện.</span></div>}
   </section>
-  <section className="ishtar-goals-panel"><h3>MỤC TIÊU CỦA BẠN</h3>{goalItems.map(goal=><button key={goal.id} type="button" onClick={()=>onNavigate?.("grades")} className="ishtar-goal-card"><b>{goal.exam}</b><span>{goal.examDate?"Ngày thi: "+goal.examDate:"Chưa thiết lập ngày thi"}</span></button>)}</section>
+  <div className="ishtar-side-col">
+   <section className="ishtar-month-panel"><div className="ishtar-month-heading"><div><CalendarDays size={22}/><h2>{monthNames[monthIndex]}, {year}</h2></div><div><button type="button" aria-label="Tháng trước" onClick={()=>move(-1)}><ChevronLeft size={17}/></button><button type="button" aria-label="Tháng sau" onClick={()=>move(1)}><ChevronRight size={17}/></button></div></div><div className="ishtar-calendar-grid">{["T2","T3","T4","T5","T6","T7","CN"].map((d,i)=><b key={d} className={i>4?"weekend":""}>{d}</b>)}{cells.map((day,i)=>{if(!day)return <span key={"blank-"+i}/>;const value=dateKey(new Date(year,monthIndex,day));const kinds=hasKind(value);const color=kinds.deadline?"#DC2626":kinds.task?"#2563EB":kinds.event?"#16A34A":"";const weekend=new Date(year,monthIndex,day).getDay()===0||new Date(year,monthIndex,day).getDay()===6;return <button key={value} type="button" onClick={()=>setSelected(value)} className={(selected===value?"selected ":"")+(value===dateKey(now)?"today ":"")+(weekend?"weekend":"")}>{day}{color&&<i style={{backgroundColor:color}}/>}</button>})}</div><button type="button" onClick={()=>{setSelected(dateKey(now));setMonth(new Date(now.getFullYear(),now.getMonth(),1))}} className="mt-2 text-xs font-semibold text-amber-700">Hôm nay</button></section>
+   <section className="ishtar-goals-panel"><h3>MỤC TIÊU CỦA BẠN</h3>{goalItems.map(goal=><button key={goal.id} type="button" onClick={()=>onNavigate?.("grades")} className="ishtar-goal-card"><b>{goal.exam}</b><span>{goal.examDate?"Ngày thi: "+goal.examDate:"Chưa thiết lập ngày thi"}</span></button>)}</section>
   </div>
  </div>;
 }
