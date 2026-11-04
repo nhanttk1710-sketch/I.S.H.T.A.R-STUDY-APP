@@ -162,3 +162,21 @@ body{background:var(--ishtar-page);color:var(--ishtar-ink)}
  .ishtar-quick__actions{grid-template-columns:1fr 1fr;gap:8px}
  .ishtar-quick__actions button{height:40px;font-size:12px}
 }
+
+
+/* User-requested dashboard polish: slightly wider panels, lighter seal ring, cleaner page white. */
+@media (min-width:1101px){
+  .ishtar-dashboard{
+    max-width:1120px;
+    grid-template-columns:minmax(0,1fr) minmax(310px,360px);
+    column-gap:20px;
+  }
+  .ishtar-dashboard__stats{gap:16px}
+  .ishtar-events-heading,.ishtar-events-list,.ishtar-goals-panel,.ishtar-month-panel{min-width:0}
+  .ishtar-quick{padding-left:22px;padding-right:22px}
+}
+.ishtar-brand__emblem{border-width:1px}
+.ishtar-brand__emblem img{width:130%;height:130%;transform:translateY(-5%)}
+/* Slightly off-white canvas keeps white cards and search field visibly distinct. */
+[class~="bg-[#FFFEFC]"]{background-color:#FAFAFA!important}
+[class*="bg-[#FFFEFC]/95"]{background-color:rgba(250,250,250,.95)!important}
