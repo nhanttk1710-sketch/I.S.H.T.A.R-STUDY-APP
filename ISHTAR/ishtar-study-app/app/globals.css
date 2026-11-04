@@ -125,6 +125,17 @@ main>div.mx-auto.w-full{max-width:none;padding-left:0!important;padding-right:0!
   .ishtar-quick__heading h2{font-size:15px}
   .ishtar-quick__actions button{height:40px;font-size:12px}
 }
+/* Sidebar >=1101px on short screens: all menu items stay visible (nav scrollbar is hidden,
+   so items used to be cut off at ~650px of viewport height). Sizes follow viewport height. */
+@media (min-width:1101px) and (max-height:820px){
+  .ishtar-sidebar{gap:10px;padding:14px 20px 8px}
+  .ishtar-sidebar__brand{height:clamp(96px,17vh,150px)}
+  .ishtar-sidebar__brand img{max-height:calc(clamp(96px,17vh,150px) - 6px)}
+  .ishtar-sidebar__nav{gap:4px}
+  .ishtar-sidebar__item{height:clamp(34px,5.8vh,44px);min-height:0;font-size:13px}
+  .ishtar-sidebar__item svg:not(.ishtar-sidebar__sparkle){width:18px;height:18px}
+  .ishtar-sidebar__collapse{padding:6px 5px}
+}
 @media (min-width:761px) and (max-width:1100px){
   .ishtar-dashboard{width:100%;max-width:none;padding:8px 16px 14px}
   .ishtar-dashboard__greeting,.ishtar-dashboard__stats,.ishtar-dashboard__content{width:100%;max-width:none}
