@@ -1,5 +1,7 @@
 export type TabId="overview"|"schedule"|"tasks"|"grades"|"pomodoro"|"resources"|"language"|"flashcards"|"playlist"|"settings";
-export type Task={id:string;title:string;subject:string;due:string;done:boolean;plannedDate?:string;priority?:"low"|"medium"|"high"};\nexport type Deadline={id:string;title:string;date:string;time?:string;taskId?:string;done:boolean};\nexport type PersonalEvent={id:string;title:string;date:string;time?:string;allDay?:boolean;notes?:string;repeat?: "none"|"yearly"|"weekly"};
+export type Task={id:string;title:string;subject:string;due:string;done:boolean;plannedDate?:string;priority?:"low"|"medium"|"high"};
+export type Deadline={id:string;title:string;date:string;time?:string;taskId?:string;done:boolean};
+export type PersonalEvent={id:string;title:string;date:string;time?:string;allDay?:boolean;notes?:string;repeat?: "none"|"yearly"|"weekly"};
 export type Grade={id:string;subject:string;score:number;weight:number};
 export type Session={id:string;subject:string;day:number;start:string;end:string};
 export type StudySession={day:string;time:string;subject:string;duration:string;color:string};
