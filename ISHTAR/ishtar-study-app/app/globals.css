@@ -176,5 +176,5 @@ main>div.mx-auto.w-full{max-width:none;padding-left:0!important;padding-right:0!
 .ishtar-brand__emblem{border-width:1px}
 .ishtar-brand__emblem img{width:132%;height:132%;transform:translateY(-5%)}
 /* A clean near-white canvas remains distinguishable from pure-white cards/search. */
-:root{--ishtar-page:#fdfdfc}
+:root{--ishtar-page:#fefefe}
 body{background:var(--ishtar-page)}
