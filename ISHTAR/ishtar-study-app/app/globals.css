@@ -160,3 +160,21 @@ main>div.mx-auto.w-full{max-width:none;padding-left:0!important;padding-right:0!
 .ishtar-sidebar--collapsed{--emb:48px}
 @media (min-width:761px) and (max-width:1100px){.ishtar-sidebar{--emb:64px;--name:15px;--tag:7px}.ishtar-brand__text p{max-width:110px}}
 @media (max-width:760px){.ishtar-brand__text{display:none}.ishtar-sidebar{--emb:40px}}
+
+
+/* Dashboard refinement requested: use the available width without changing component structure. */
+@media (min-width:1101px){
+  .ishtar-dashboard{
+    max-width:1160px;
+    grid-template-columns:minmax(0,1fr) minmax(320px,370px);
+    column-gap:22px;
+  }
+  .ishtar-dashboard__stats{gap:16px}
+  .ishtar-quick{padding-left:22px;padding-right:22px}
+}
+/* Keep the seal ring hairline-thin and let the artwork breathe beyond it. */
+.ishtar-brand__emblem{border-width:1px}
+.ishtar-brand__emblem img{width:132%;height:132%;transform:translateY(-5%)}
+/* A clean near-white canvas remains distinguishable from pure-white cards/search. */
+:root{--ishtar-page:#faf9f6}
+body{background:var(--ishtar-page)}
