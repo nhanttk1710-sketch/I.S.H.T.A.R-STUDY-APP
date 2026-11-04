@@ -12,14 +12,14 @@ export default function ImportantEventsCalendar({goals=[],tasks,deadlines,events
  const [formOpen,setFormOpen]=useState(false);const [kind,setKind]=useState<"deadline"|"event">("deadline");const [title,setTitle]=useState("");const [date,setDate]=useState(dateKey(now));const [time,setTime]=useState("23:59");const [filter,setFilter]=useState<"all"|"deadline"|"task"|"event">("all");
  const year=month.getFullYear(),monthIndex=month.getMonth(),daysInMonth=new Date(year,monthIndex+1,0).getDate(),offset=(new Date(year,monthIndex,1).getDay()+6)%7;
  const cells=useMemo(()=>Array.from({length:offset+daysInMonth},(_,i)=>i<offset?null:i-offset+1),[offset,daysInMonth]);
- const selectedTasks=tasks.filter(t=>t.due===selected&&!t.done);
+ const selectedTasks=tasks.filter(t=>t.plannedDate===selected&&!t.done);
  const selectedDeadlines=deadlines.filter(d=>d.date===selected&&!d.done);
  const selectedEvents=events.filter(e=>e.date===selected);
  const hasKind=(day:string)=>({deadline:deadlines.some(x=>x.date===day&&!x.done)||tasks.some(x=>x.due===day&&!x.done),task:tasks.some(x=>(x.plannedDate===day||(!x.due&&x.plannedDate===day))&&!x.done),event:events.some(x=>x.date===day) });
  const dates=Array.from({length:daysInMonth},(_,i)=>dateKey(new Date(year,monthIndex,i+1)));
  const selectedItems=[
- ...selectedDeadlines.map(x=>({id:x.id,title:x.title,kind:"deadline" as const,time:x.time||"23:59",done:x.done,taskId:x.taskId})),
- ...selectedTasks.filter(t=>!selectedDeadlines.some(d=>d.taskId===t.id)).map(x=>({id:x.id,title:x.title,kind:"task" as const,time:"",done:x.done,taskId:x.id})),
+ ...selectedDeadlines.map(x=>({id:x.id,title:x.title,kind:"deadline" as const,time:x.time||"23:59",done:x.done,taskId:x.taskId})),\n ...tasks.filter(t=>t.due===selected&&!t.done&&!deadlines.some(d=>d.taskId===t.id)).map(x=>({id:x.id,title:x.title,kind:"deadline" as const,time:"23:59",done:x.done,taskId:x.id})),
+ ...selectedTasks.map(x=>({id:x.id,title:x.title,kind:"task" as const,time:"",done:x.done,taskId:x.id})),
  ...selectedEvents.map(x=>({id:x.id,title:x.title,kind:"event" as const,time:x.allDay?"Cả ngày":x.time||"",done:false,taskId:undefined}))
  ].filter(x=>filter==="all"||x.kind===filter).sort((a,b)=>({deadline:0,task:1,event:2}[a.kind]-{deadline:0,task:1,event:2}[b.kind])||a.time.localeCompare(b.time));
  const add=(e:React.FormEvent)=>{e.preventDefault();if(!title.trim()||!date)return;if(kind==="deadline")onDataChange({tasks,deadlines:[...deadlines,{id:uid(),title:title.trim(),date,time,done:false}],events});else onDataChange({tasks,deadlines,events:[...events,{id:uid(),title:title.trim(),date,time,allDay:false,repeat:"none"}]});setSelected(date);const d=new Date(date+"T12:00:00");setMonth(new Date(d.getFullYear(),d.getMonth(),1));setTitle("");setFormOpen(false)};
