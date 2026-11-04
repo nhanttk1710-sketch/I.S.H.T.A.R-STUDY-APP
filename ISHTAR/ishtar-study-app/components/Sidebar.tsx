@@ -1,5 +1,24 @@
 "use client";
-import {LayoutDashboard,CalendarDays,ClipboardList,ChartNoAxesColumnIncreasing,Timer,FolderOpen,Languages,Layers,Settings} from "lucide-react";
+import React from "react";
+import {LayoutGrid,CalendarDays,SquareCheck,ChartNoAxesColumnIncreasing,Timer,Folder,Languages,Layers,Headphones,Settings,PanelLeftClose,PanelLeftOpen,Sparkles} from "lucide-react";
 import type {TabId} from "./types";
-const items:{id:TabId;label:string;icon:typeof LayoutDashboard}[]=[{id:"overview",label:"Tổng quan",icon:LayoutDashboard},{id:"schedule",label:"Thời khóa biểu",icon:CalendarDays},{id:"tasks",label:"Bài tập & Deadline",icon:ClipboardList},{id:"grades",label:"Điểm số & GPA",icon:ChartNoAxesColumnIncreasing},{id:"pomodoro",label:"Pomodoro",icon:Timer},{id:"resources",label:"Tài liệu",icon:FolderOpen},{id:"language",label:"Ngôn ngữ",icon:Languages},{id:"flashcards",label:"Flashcard",icon:Layers},{id:"settings",label:"Cài đặt",icon:Settings}];
-export default function Sidebar({active,onChange,collapsed,onToggle}:{active:TabId;onChange:(id:TabId)=>void;collapsed:boolean;onToggle:()=>void}){return <aside className={"sticky top-0 hidden h-screen flex-col bg-blue-50/80 px-4 py-6 lg:flex "+(collapsed?"w-[88px]":"w-[260px]")}><div className="mb-10 flex items-center gap-3 px-2"><img src="/isthar-avatar.png" alt="I.S.H.T.A.R" className="h-10 w-10 rounded-full object-cover"/>{!collapsed&&<div><b className="tracking-widest">I.S.H.T.A.R</b><p className="text-[10px] tracking-widest text-stone-400">STUDY COMPANION</p></div>}</div><nav className="flex-1 space-y-1">{items.map(({id,label,icon:Icon})=><button key={id} title={collapsed?label:undefined} onClick={()=>onChange(id)} className={"flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm "+(active===id?"bg-blue-100 font-bold text-blue-700":"text-stone-500 hover:bg-white/70") }><Icon size={19}/>{!collapsed&&label}</button>)}</nav><button onClick={onToggle} className="rounded-xl p-3 text-left text-xs text-stone-400"> {collapsed?"Mở rộng":"Thu gọn thanh bên"}</button></aside>}
+import {IshtarLogo} from "./IshtarLogo";
+interface SidebarProps{active:TabId;onChange:(tab:TabId)=>void;collapsed?:boolean;onToggle?:()=>void;logoImageUrl?:string}
+const items:{id:TabId;label:string;icon:React.ElementType}[]=[
+{id:"overview",label:"Tổng quan",icon:LayoutGrid},
+{id:"schedule",label:"Thời khóa biểu",icon:CalendarDays},
+{id:"tasks",label:"Bài tập & Deadline",icon:SquareCheck},
+{id:"grades",label:"Điểm số & GPA",icon:ChartNoAxesColumnIncreasing},
+{id:"pomodoro",label:"Pomodoro",icon:Timer},
+{id:"resources",label:"Tài liệu",icon:Folder},
+{id:"language",label:"Ngôn ngữ",icon:Languages},
+{id:"flashcards",label:"Flashcard",icon:Layers},
+{id:"settings",label:"Cài đặt",icon:Settings},
+];
+export const Sidebar:React.FC<SidebarProps>=({active,onChange,collapsed=false,onToggle,logoImageUrl="/ishtar-logo.webp"})=><aside className={`ishtar-sidebar ${collapsed?"ishtar-sidebar--collapsed":""}`}>
+ <div className="ishtar-sidebar__brand"><IshtarLogo className={collapsed?"w-12":"w-full"} collapsed={collapsed} logoUrl={logoImageUrl}/></div>
+ {!collapsed&&<div className="ishtar-sidebar__section"><span>KHÔNG GIAN HỌC TẬP</span><i/> <b>✦</b></div>}
+ <nav className="ishtar-sidebar__nav">{items.map(({id,label,icon:Icon})=>{const selected=active===id;return <button key={id} type="button" onClick={()=>onChange(id)} title={collapsed?label:undefined} aria-current={selected?"page":undefined} className={selected?"ishtar-sidebar__item is-active":"ishtar-sidebar__item"}><Icon size={21} strokeWidth={1.8}/>{!collapsed&&<span>{label}</span>}{!collapsed&&selected&&<Sparkles className="ishtar-sidebar__sparkle" size={14}/>}</button>})}</nav>
+ <button type="button" onClick={onToggle} className="ishtar-sidebar__collapse" title={collapsed?"Mở rộng thanh bên":"Thu gọn thanh bên"}>{collapsed?<PanelLeftOpen size={17}/>:<><PanelLeftClose size={17}/><span>Thu gọn thanh bên</span></>}</button>
+</aside>;
+export default Sidebar;
