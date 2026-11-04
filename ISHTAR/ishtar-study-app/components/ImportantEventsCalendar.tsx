@@ -12,7 +12,10 @@ export default function ImportantEventsCalendar({goals=[],events,tasks,onEventsC
  const [formOpen,setFormOpen]=useState(false);const [title,setTitle]=useState("");const [date,setDate]=useState(dateKey(now));const [time,setTime]=useState("");
  const year=month.getFullYear(),monthIndex=month.getMonth(),daysInMonth=new Date(year,monthIndex+1,0).getDate(),offset=(new Date(year,monthIndex,1).getDay()+6)%7;
  const cells=useMemo(()=>Array.from({length:offset+daysInMonth},(_,i)=>i<offset?null:i-offset+1),[offset,daysInMonth]);
- const selectedEvents=events.filter(e=>e.date===selected).sort((a,b)=>(a.time||"").localeCompare(b.time||""));\n const selectedTasks=tasks.filter(t=>t.due===selected);\n const taskUrgent=(t:Task)=>!t.done&&Boolean(t.due)&&new Date(t.due+"T23:59:59").getTime()-Date.now()<=48*60*60*1000;\n const dayCount=selectedEvents.length+selectedTasks.length;
+ const selectedEvents=events.filter(e=>e.date===selected).sort((a,b)=>(a.time||"").localeCompare(b.time||""));;
+ const selectedTasks=tasks.filter(t=>t.due===selected);
+ const taskUrgent=(t:Task)=>!t.done&&Boolean(t.due)&&new Date(t.due+"T23:59:59").getTime()-Date.now()<=48*60*60*1000;
+ const dayCount=selectedEvents.length+selectedTasks.length;
  const add=(e:React.FormEvent)=>{e.preventDefault();if(!title.trim()||!date)return;onEventsChange([...events,{id:uid(),title:title.trim(),date,time:time||undefined,allDay:!time,repeat:"none"}]);setSelected(date);const d=new Date(date+"T12:00:00");setMonth(new Date(d.getFullYear(),d.getMonth(),1));setTitle("");setTime("");setFormOpen(false)};
  const move=(delta:number)=>setMonth(new Date(year,monthIndex+delta,1));
  const goalItems=goals.length?goals:[{id:"sat-template",exam:"SAT",target:"",examDate:"",createdAt:"",scoreMin:400,scoreMax:1600,scores:[]},{id:"ielts-template",exam:"IELTS",target:"",examDate:"",createdAt:"",scoreMin:1,scoreMax:9,scores:[]}];
