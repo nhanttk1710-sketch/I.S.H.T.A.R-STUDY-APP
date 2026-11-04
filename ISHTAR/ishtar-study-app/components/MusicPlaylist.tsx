@@ -7,7 +7,9 @@ const KEY="ishtar-music-playlists-v1",uid=()=>Math.random().toString(36).slice(2
 function videoId(value:string){try{const u=new URL(value);if(u.hostname.includes("youtu.be"))return u.pathname.slice(1).split("/")[0];if(u.hostname.includes("youtube.com"))return u.searchParams.get("v")||u.pathname.split("/").filter(Boolean).pop()||"";}catch{}return /^[\w-]{11}$/.test(value.trim())?value.trim():"";}
 export default function MusicPlaylist({onToast}:{onToast:(s:string)=>void}){
  const [lists,setLists]=useState<Playlist[]>([]),[ready,setReady]=useState(false),[active,setActive]=useState(""),[name,setName]=useState(""),[trackTitle,setTrackTitle]=useState(""),[url,setUrl]=useState(""),[repeat,setRepeat]=useState<"off"|"all"|"one">("all"),[playing,setPlaying]=useState(false),[current,setCurrent]=useState(0),[apiReady,setApiReady]=useState(false);
- const player=useRef<any>(null),host=useRef<HTMLDivElement>(null),activeList=lists.find(x=>x.id===active),tracks=activeList?.tracks||[],track=tracks[current];\n const playbackRef=useRef({current,trackCount:tracks.length,repeat});\n playbackRef.current={current,trackCount:tracks.length,repeat};
+ const player=useRef<any>(null),host=useRef<HTMLDivElement>(null),activeList=lists.find(x=>x.id===active),tracks=activeList?.tracks||[],track=tracks[current];
+ const playbackRef=useRef({current,trackCount:tracks.length,repeat});
+ playbackRef.current={current,trackCount:tracks.length,repeat};
  useEffect(()=>{try{const raw=localStorage.getItem(KEY);if(raw){const p=JSON.parse(raw) as Playlist[];setLists(p);setActive(p[0]?.id||"")}}catch{}setReady(true)},[]);
  useEffect(()=>{if(ready)try{localStorage.setItem(KEY,JSON.stringify(lists))}catch{onToast("Không đủ bộ nhớ để lưu playlist.")}},[lists,ready,onToast]);
  useEffect(()=>{if(window.YT?.Player){setApiReady(true);return;}const old=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{old?.();setApiReady(true)};if(!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')){const s=document.createElement("script");s.src="https://www.youtube.com/iframe_api";document.head.appendChild(s)}return()=>{window.onYouTubeIframeAPIReady=old}},[]);
