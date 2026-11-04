@@ -18,7 +18,8 @@ export default function ImportantEventsCalendar({goals=[],tasks,deadlines,events
  const hasKind=(day:string)=>({deadline:deadlines.some(x=>x.date===day&&!x.done)||tasks.some(x=>x.due===day&&!x.done),task:tasks.some(x=>(x.plannedDate===day||(!x.due&&x.plannedDate===day))&&!x.done),event:events.some(x=>x.date===day) });
  const dates=Array.from({length:daysInMonth},(_,i)=>dateKey(new Date(year,monthIndex,i+1)));
  const selectedItems=[
- ...selectedDeadlines.map(x=>({id:x.id,title:x.title,kind:"deadline" as const,time:x.time||"23:59",done:x.done,taskId:x.taskId})),\n ...tasks.filter(t=>t.due===selected&&!t.done&&!deadlines.some(d=>d.taskId===t.id)).map(x=>({id:x.id,title:x.title,kind:"deadline" as const,time:"23:59",done:x.done,taskId:x.id})),
+ ...selectedDeadlines.map(x=>({id:x.id,title:x.title,kind:"deadline" as const,time:x.time||"23:59",done:x.done,taskId:x.taskId})),
+ ...tasks.filter(t=>t.due===selected&&!t.done&&!deadlines.some(d=>d.taskId===t.id)).map(x=>({id:x.id,title:x.title,kind:"deadline" as const,time:"23:59",done:x.done,taskId:x.id})),
  ...selectedTasks.map(x=>({id:x.id,title:x.title,kind:"task" as const,time:"",done:x.done,taskId:x.id})),
  ...selectedEvents.map(x=>({id:x.id,title:x.title,kind:"event" as const,time:x.allDay?"Cả ngày":x.time||"",done:false,taskId:undefined}))
  ].filter(x=>filter==="all"||x.kind===filter).sort((a,b)=>({deadline:0,task:1,event:2}[a.kind]-{deadline:0,task:1,event:2}[b.kind])||a.time.localeCompare(b.time));
