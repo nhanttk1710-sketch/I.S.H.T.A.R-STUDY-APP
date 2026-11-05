@@ -183,10 +183,6 @@ export default function MusicPlaylist({
           playerReadyRef.current = true;
           setPlayerReady(true);
         },
-        onReady: () => {
-          playerReadyRef.current = true;
-          setPlayerReady(true);
-        },
         onStateChange: (event: any) => {
           const states = window.YT?.PlayerState;
           if (event.data === states?.PLAYING) setPlaying(true);
@@ -207,11 +203,6 @@ export default function MusicPlaylist({
             playRequested.current = false;
             setPlaying(false);
           }
-        },
-        onError: () => {
-          playRequested.current = false;
-          setPlaying(false);
-          onToastRef.current("Video này không thể phát. Hãy thử một video YouTube khác.");
         },
         onError: () => {
           playRequested.current = false;
