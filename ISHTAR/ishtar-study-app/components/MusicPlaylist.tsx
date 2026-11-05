@@ -50,9 +50,12 @@ export default function MusicPlaylist({
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [apiReady, setApiReady] = useState(false);
+  const [playerReady, setPlayerReady] = useState(false);
 
   const player = useRef<any>(null);
   const host = useRef<HTMLDivElement>(null);
+  const playRequested = useRef(false);
+  const playerReadyRef = useRef(false);
   const activeList = lists.find((item) => item.id === active);
   const tracks = activeList?.tracks ?? [];
   const track = tracks[current];
@@ -83,27 +86,26 @@ export default function MusicPlaylist({
   }, [lists, ready, onToast]);
 
   useEffect(() => {
-    if (window.YT?.Player) {
-      setApiReady(true);
-      return;
+    let cancelled = false;
+    const onReady = () => { if (!cancelled) setApiReady(true); };
+    if (window.YT?.Player) onReady();
+    else {
+      const previous = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        previous?.();
+        onReady();
+      };
+      let script = document.querySelector<HTMLScriptElement>('script[src="https://www.youtube.com/iframe_api"]');
+      if (!script) {
+        script = document.createElement("script");
+        script.src = "https://www.youtube.com/iframe_api";
+        script.async = true;
+        script.onerror = () => { if (!cancelled) onToast("Không thể tải YouTube Player API."); };
+        document.head.appendChild(script);
+      }
     }
-
-    const previousCallback = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      previousCallback?.();
-      setApiReady(true);
-    };
-
-    if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
-      const script = document.createElement("script");
-      script.src = "https://www.youtube.com/iframe_api";
-      document.head.appendChild(script);
-    }
-
-    return () => {
-      window.onYouTubeIframeAPIReady = previousCallback;
-    };
-  }, []);
+    return () => { cancelled = true; };
+  }, [onToast]);
 
   useEffect(() => {
     if (!apiReady || !host.current || player.current) return;
@@ -114,6 +116,10 @@ export default function MusicPlaylist({
       videoId: "",
       playerVars: { playsinline: 1, rel: 0 },
       events: {
+        onReady: () => {
+          playerReadyRef.current = true;
+          setPlayerReady(true);
+        },
         onStateChange: (event: any) => {
           if (event.data === window.YT.PlayerState.PLAYING) setPlaying(true);
           if (event.data === window.YT.PlayerState.PAUSED) setPlaying(false);
@@ -131,10 +137,17 @@ export default function MusicPlaylist({
             setPlaying(false);
           }
         },
+        onError: () => {
+          playRequested.current = false;
+          setPlaying(false);
+          onToast("Video này không thể phát. Hãy thử một video YouTube khác.");
+        },
       },
     });
 
     return () => {
+      playerReadyRef.current = false;
+      setPlayerReady(false);
       try {
         player.current?.destroy();
       } catch {
@@ -142,12 +155,19 @@ export default function MusicPlaylist({
       }
       player.current = null;
     };
-  }, [apiReady]);
+  }, [apiReady, onToast]);
 
   useEffect(() => {
-    if (!player.current || !track) return;
-    player.current.loadVideoById(track.videoId);
-  }, [track?.videoId]);
+    if (!player.current || !playerReady) return;
+    if (!track) {
+      playRequested.current = false;
+      player.current.stopVideo?.();
+      setPlaying(false);
+      return;
+    }
+    if (playRequested.current) player.current.loadVideoById(track.videoId);
+    else player.current.cueVideoById(track.videoId);
+  }, [track?.videoId, playerReady]);
 
   const create = () => {
     if (!name.trim()) return;
@@ -181,17 +201,23 @@ export default function MusicPlaylist({
   };
 
   const select = (id: string) => {
+    const selected = lists.find((item) => item.id === id);
+    playRequested.current = Boolean(selected?.tracks.length);
     setActive(id);
     setCurrent(0);
     setPlaying(false);
   };
 
   const jump = (index: number) => {
-    if (tracks.length) setCurrent((index + tracks.length) % tracks.length);
+    if (!tracks.length) return;
+    playRequested.current = true;
+    setCurrent((index + tracks.length) % tracks.length);
   };
 
   const togglePlay = () => {
-    if (!track || !player.current) return;
+    if (!track) return;
+    playRequested.current = !playing;
+    if (!playerReadyRef.current || !player.current) return;
     if (playing) player.current.pauseVideo();
     else player.current.playVideo();
   };
@@ -399,8 +425,9 @@ export default function MusicPlaylist({
                     >
                       <button
                         onClick={() => {
+                          playRequested.current = true;
                           setCurrent(index);
-                          setPlaying(true);
+                          setPlaying(false);
                         }}
                         className="min-w-0 flex-1 text-left"
                       >
@@ -428,7 +455,18 @@ export default function MusicPlaylist({
                               tracks: playlist.tracks.filter((entry) => entry.id !== item.id),
                             }));
                             if (index < current) setCurrent((value) => Math.max(0, value - 1));
-                            else if (index === current) setPlaying(false);
+                            else if (index === current) {
+                              const remaining = tracks.length - 1;
+                              if (remaining === 0) {
+                                playRequested.current = false;
+                                player.current?.stopVideo?.();
+                                setCurrent(0);
+                                setPlaying(false);
+                              } else {
+                                playRequested.current = true;
+                                setCurrent(Math.min(index, remaining - 1));
+                              }
+                            }
                           }}
                         >
                           <Trash2 size={15} className="text-rose-400" />
