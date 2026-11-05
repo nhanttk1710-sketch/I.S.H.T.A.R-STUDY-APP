@@ -102,10 +102,10 @@ export default function MusicPlaylist({
           const backup: unknown = backupRaw ? JSON.parse(backupRaw) : null;
           if (isPlaylistArray(backup)) {
             loaded = backup;
-            onToast("Playlist đã được khôi phục từ bản sao lưu.");
+            onToastRef.current("Playlist đã được khôi phục từ bản sao lưu.");
           } else {
             safeToPersist = false;
-            onToast("Dữ liệu Playlist bị lỗi. Đã giữ bản gốc để tránh ghi đè.");
+            onToastRef.current("Dữ liệu Playlist bị lỗi. Đã giữ bản gốc để tránh ghi đè.");
           }
         }
       }
@@ -117,21 +117,21 @@ export default function MusicPlaylist({
         const backup: unknown = backupRaw ? JSON.parse(backupRaw) : null;
         if (isPlaylistArray(backup)) {
           loaded = backup;
-          onToast("Playlist đã được khôi phục từ bản sao lưu.");
+          onToastRef.current("Playlist đã được khôi phục từ bản sao lưu.");
         } else {
           safeToPersist = false;
-          onToast("Không thể đọc Playlist. Dữ liệu gốc đã được giữ lại.");
+          onToastRef.current("Không thể đọc Playlist. Dữ liệu gốc đã được giữ lại.");
         }
       } catch {
         safeToPersist = false;
-        onToast("Không thể đọc Playlist hoặc bản sao lưu. Dữ liệu chưa bị ghi đè.");
+        onToastRef.current("Không thể đọc Playlist hoặc bản sao lưu. Dữ liệu chưa bị ghi đè.");
       }
     }
     setCanPersist(safeToPersist);
     setLists(loaded);
     setActive(loaded[0]?.id ?? "");
     setReady(true);
-  }, [onToast]);
+  }, []);
 
   useEffect(() => {
     if (!ready || !canPersist) return;
@@ -147,9 +147,9 @@ export default function MusicPlaylist({
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
     } catch {
-      onToast("Không đủ bộ nhớ để lưu Playlist. Dữ liệu trên trang vẫn được giữ.");
+      onToastRef.current("Không đủ bộ nhớ để lưu Playlist. Dữ liệu trên trang vẫn được giữ.");
     }
-  }, [lists, ready, canPersist, onToast]);
+  }, [lists, ready, canPersist]);
 
   useEffect(() => {
     let cancelled = false;
