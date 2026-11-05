@@ -214,7 +214,6 @@ export default function MusicPlaylist({
   return (
     <>
       <div
-        ref={host}
         className={
           track
             ? visible
@@ -222,7 +221,9 @@ export default function MusicPlaylist({
               : "fixed bottom-24 right-4 z-[65] h-[112px] w-[200px] overflow-hidden rounded-xl border border-amber-300 shadow-xl"
             : "fixed -left-[9999px] top-0 h-px w-px overflow-hidden"
         }
-      />
+      >
+        <div ref={host} className="h-full w-full" />
+      </div>
 
       {visible && (
         <>
