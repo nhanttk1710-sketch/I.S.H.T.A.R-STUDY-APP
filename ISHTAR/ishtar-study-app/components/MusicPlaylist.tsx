@@ -28,7 +28,7 @@ function isTrack(value: unknown): value is Track {
   if (!value || typeof value !== "object") return false;
   const item = value as Record<string, unknown>;
   return typeof item.id === "string" && typeof item.title === "string" &&
-    typeof item.videoId === "string" && /^[\\w-]{11}$/.test(item.videoId);
+    typeof item.videoId === "string" && /^[\w-]{11}$/.test(item.videoId);
 }
 
 function isPlaylistArray(value: unknown): value is Playlist[] {
@@ -41,16 +41,19 @@ function isPlaylistArray(value: unknown): value is Playlist[] {
 }
 
 function parseVideoId(value: string) {
+  const input = value.trim();
+  if (/^[\w-]{11}$/.test(input)) return input;
   try {
-    const url = new URL(value);
-    if (url.hostname.includes("youtu.be")) return url.pathname.slice(1).split("/")[0];
-    if (url.hostname.includes("youtube.com")) {
-      return url.searchParams.get("v") || url.pathname.split("/").filter(Boolean).pop() || "";
+    const url = new URL(input);
+    const host = url.hostname.toLowerCase().replace(/^www\./, "");
+    let id = "";
+    if (host === "youtu.be") id = url.pathname.split("/").filter(Boolean)[0] ?? "";
+    else if (["youtube.com", "m.youtube.com", "music.youtube.com"].includes(host)) {
+      if (url.pathname === "/watch") id = url.searchParams.get("v") ?? "";
+      else if (/^\/(embed|shorts|live)\//.test(url.pathname)) id = url.pathname.split("/").filter(Boolean)[1] ?? "";
     }
-  } catch {
-    // The input may be a raw YouTube video ID.
-  }
-  return /^[\w-]{11}$/.test(value.trim()) ? value.trim() : "";
+    return /^[\w-]{11}$/.test(id) ? id : "";
+  } catch { return ""; }
 }
 
 export default function MusicPlaylist({
@@ -252,6 +255,10 @@ export default function MusicPlaylist({
       return;
     }
     if (!activeList) return;
+    if (activeList.tracks.some((item) => item.videoId === id)) {
+      onToast("Bài hát này đã có trong playlist.");
+      return;
+    }
     const newTrack = { id: uid(), title: trackTitle.trim() || "YouTube track", videoId: id };
     setLists((items) =>
       items.map((item) =>
@@ -378,6 +385,7 @@ export default function MusicPlaylist({
                         setLists((items) => items.filter((item) => item.id !== playlist.id));
                         if (active === playlist.id) {
                           const next = lists.find((item) => item.id !== playlist.id);
+                          playRequested.current = Boolean(next?.tracks.length);
                           setActive(next?.id ?? "");
                           setCurrent(0);
                           setPlaying(false);
