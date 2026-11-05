@@ -56,6 +56,8 @@ export default function MusicPlaylist({
   const host = useRef<HTMLDivElement>(null);
   const playRequested = useRef(false);
   const playerReadyRef = useRef(false);
+  const onToastRef = useRef(onToast);
+  onToastRef.current = onToast;
   const activeList = lists.find((item) => item.id === active);
   const tracks = activeList?.tracks ?? [];
   const track = tracks[current];
@@ -100,12 +102,12 @@ export default function MusicPlaylist({
         script = document.createElement("script");
         script.src = "https://www.youtube.com/iframe_api";
         script.async = true;
-        script.onerror = () => { if (!cancelled) onToast("Không thể tải YouTube Player API."); };
+        script.onerror = () => { if (!cancelled) onToastRef.current("Không thể tải YouTube Player API."); };
         document.head.appendChild(script);
       }
     }
     return () => { cancelled = true; };
-  }, [onToast]);
+  }, []);
 
   useEffect(() => {
     if (!apiReady || !host.current || player.current) return;
@@ -140,7 +142,7 @@ export default function MusicPlaylist({
         onError: () => {
           playRequested.current = false;
           setPlaying(false);
-          onToast("Video này không thể phát. Hãy thử một video YouTube khác.");
+          onToastRef.current("Video này không thể phát. Hãy thử một video YouTube khác.");
         },
       },
     });
@@ -155,7 +157,7 @@ export default function MusicPlaylist({
       }
       player.current = null;
     };
-  }, [apiReady, onToast]);
+  }, [apiReady]);
 
   useEffect(() => {
     if (!player.current || !playerReady) return;
@@ -167,7 +169,7 @@ export default function MusicPlaylist({
     }
     if (playRequested.current) player.current.loadVideoById(track.videoId);
     else player.current.cueVideoById(track.videoId);
-  }, [track?.videoId, playerReady]);
+  }, [active, current, track?.videoId, playerReady]);
 
   const create = () => {
     if (!name.trim()) return;
