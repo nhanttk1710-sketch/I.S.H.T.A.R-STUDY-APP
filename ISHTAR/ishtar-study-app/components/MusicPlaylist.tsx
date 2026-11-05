@@ -18,7 +18,27 @@ declare global {
 }
 
 const STORAGE_KEY = "ishtar-music-playlists-v1";
-const uid = () => Math.random().toString(36).slice(2, 10);
+const BACKUP_KEY = `${STORAGE_KEY}-backup`;
+const CORRUPT_KEY = `${STORAGE_KEY}-corrupt-backup`;
+const uid = () => typeof crypto !== "undefined" && "randomUUID" in crypto
+  ? crypto.randomUUID()
+  : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+function isTrack(value: unknown): value is Track {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.id === "string" && typeof item.title === "string" &&
+    typeof item.videoId === "string" && /^[\\w-]{11}$/.test(item.videoId);
+}
+
+function isPlaylistArray(value: unknown): value is Playlist[] {
+  return Array.isArray(value) && value.every((entry) => {
+    if (!entry || typeof entry !== "object") return false;
+    const item = entry as Record<string, unknown>;
+    return typeof item.id === "string" && typeof item.name === "string" &&
+      Array.isArray(item.tracks) && item.tracks.every(isTrack);
+  });
+}
 
 function parseVideoId(value: string) {
   try {
@@ -51,6 +71,7 @@ export default function MusicPlaylist({
   const [current, setCurrent] = useState(0);
   const [apiReady, setApiReady] = useState(false);
   const [playerReady, setPlayerReady] = useState(false);
+  const [canPersist, setCanPersist] = useState(true);
 
   const player = useRef<any>(null);
   const host = useRef<HTMLDivElement>(null);
@@ -65,27 +86,67 @@ export default function MusicPlaylist({
   playback.current = { current, trackCount: tracks.length, repeat };
 
   useEffect(() => {
+    let loaded: Playlist[] = [];
+    let safeToPersist = true;
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as Playlist[];
-        setLists(parsed);
-        setActive(parsed[0]?.id ?? "");
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (isPlaylistArray(parsed)) loaded = parsed;
+        else {
+          localStorage.setItem(CORRUPT_KEY, raw);
+          const backupRaw = localStorage.getItem(BACKUP_KEY);
+          const backup: unknown = backupRaw ? JSON.parse(backupRaw) : null;
+          if (isPlaylistArray(backup)) {
+            loaded = backup;
+            onToast("Playlist đã được khôi phục từ bản sao lưu.");
+          } else {
+            safeToPersist = false;
+            onToast("Dữ liệu Playlist bị lỗi. Đã giữ bản gốc để tránh ghi đè.");
+          }
+        }
       }
     } catch {
-      onToast("Không thể đọc playlist đã lưu.");
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) localStorage.setItem(CORRUPT_KEY, raw);
+        const backupRaw = localStorage.getItem(BACKUP_KEY);
+        const backup: unknown = backupRaw ? JSON.parse(backupRaw) : null;
+        if (isPlaylistArray(backup)) {
+          loaded = backup;
+          onToast("Playlist đã được khôi phục từ bản sao lưu.");
+        } else {
+          safeToPersist = false;
+          onToast("Không thể đọc Playlist. Dữ liệu gốc đã được giữ lại.");
+        }
+      } catch {
+        safeToPersist = false;
+        onToast("Không thể đọc Playlist hoặc bản sao lưu. Dữ liệu chưa bị ghi đè.");
+      }
     }
+    setCanPersist(safeToPersist);
+    setLists(loaded);
+    setActive(loaded[0]?.id ?? "");
     setReady(true);
   }, [onToast]);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !canPersist) return;
     try {
+      const previous = localStorage.getItem(STORAGE_KEY);
+      if (previous) {
+        try {
+          const parsed: unknown = JSON.parse(previous);
+          if (isPlaylistArray(parsed)) localStorage.setItem(BACKUP_KEY, previous);
+        } catch {
+          // Keep invalid data out of the recovery backup.
+        }
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
     } catch {
-      onToast("Không đủ bộ nhớ để lưu playlist.");
+      onToast("Không đủ bộ nhớ để lưu Playlist. Dữ liệu trên trang vẫn được giữ.");
     }
-  }, [lists, ready, onToast]);
+  }, [lists, ready, canPersist, onToast]);
 
   useEffect(() => {
     let cancelled = false;
@@ -122,22 +183,35 @@ export default function MusicPlaylist({
           playerReadyRef.current = true;
           setPlayerReady(true);
         },
+        onReady: () => {
+          playerReadyRef.current = true;
+          setPlayerReady(true);
+        },
         onStateChange: (event: any) => {
-          if (event.data === window.YT.PlayerState.PLAYING) setPlaying(true);
-          if (event.data === window.YT.PlayerState.PAUSED) setPlaying(false);
-          if (event.data !== window.YT.PlayerState.ENDED) return;
+          const states = window.YT?.PlayerState;
+          if (event.data === states?.PLAYING) setPlaying(true);
+          else if (event.data === states?.PAUSED || event.data === states?.CUED) setPlaying(false);
+          if (event.data !== states?.ENDED) return;
 
           const state = playback.current;
           if (state.repeat === "one") {
             event.target.seekTo(0);
             event.target.playVideo();
           } else if (state.current < state.trackCount - 1) {
+            playRequested.current = true;
             setCurrent(state.current + 1);
           } else if (state.repeat === "all" && state.trackCount > 1) {
+            playRequested.current = true;
             setCurrent(0);
           } else {
+            playRequested.current = false;
             setPlaying(false);
           }
+        },
+        onError: () => {
+          playRequested.current = false;
+          setPlaying(false);
+          onToastRef.current("Video này không thể phát. Hãy thử một video YouTube khác.");
         },
         onError: () => {
           playRequested.current = false;
