@@ -150,10 +150,13 @@ export default function VocabularyVault({
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
-  const state =
-    session.date === today
-      ? session
-      : newSession(today, dailyWords.map((word) => word.id));
+  const state = session;
+
+  useEffect(() => {
+    if (today && session.date !== today) {
+      setSession(newSession(today, dailyWords.map((word) => word.id)));
+    }
+  }, [today, session.date, dailyWords]);
 
   const selected = state.ids
     .map((id) => words.find((word) => word.id === id))
@@ -163,13 +166,13 @@ export default function VocabularyVault({
   const limit = Math.ceil(order.length * 0.9);
 
   useEffect(() => {
-    if (!today || state.date !== today) return;
+    if (!today || session.date !== today) return;
     try {
-      localStorage.setItem(storageKey, JSON.stringify(state));
+      localStorage.setItem(storageKey, JSON.stringify(session));
     } catch {
       onToast("Không thể lưu tiến độ Flashcard. Bộ nhớ trình duyệt có thể đã đầy.");
     }
-  }, [state, storageKey, today, onToast]);
+  }, [session, storageKey, today, onToast]);
 
   const start = (roundNumber: number) => {
     const ids = selected.map((word) => word.id);
