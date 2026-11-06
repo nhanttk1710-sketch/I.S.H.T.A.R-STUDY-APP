@@ -22,7 +22,7 @@ function Heading({title,desc}:{title:string;desc:string}){return <div className=
 function Empty({children}:{children:string}){return <p className="rounded-2xl bg-stone-50 p-6 text-center text-sm text-stone-400">{children}</p>}
 function isRecord(value:unknown):value is Record<string,any>{return Boolean(value)&&typeof value==="object"&&!Array.isArray(value)}
 function hasStrings(value:unknown,keys:string[]){return isRecord(value)&&keys.every(key=>typeof value[key]==="string")}
-function validArray(value:unknown,check:(item:unknown)=>boolean){return value===undefined||Array.isArray(value)&&value.every(check)}
+function validArray(value:unknown,check:(item:any)=>boolean){return value===undefined||Array.isArray(value)&&value.every(check)}
 function isStudyData(value:unknown):value is Partial<AppData>{
  if(!isRecord(value))return false;
  if(value.name!==undefined&&typeof value.name!=="string")return false;
