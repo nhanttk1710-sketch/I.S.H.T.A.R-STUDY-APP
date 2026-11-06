@@ -65,7 +65,7 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
  useEffect(()=>{if(!running)return;timerDeadline.current=Date.now()+seconds*1000;const id=window.setInterval(()=>{const left=Math.max(0,Math.ceil(((timerDeadline.current||Date.now())-Date.now())/1000));setSeconds(left);if(left===0){clearInterval(id);timerDeadline.current=null;ding();setRunning(false);if(mode==="study"){setMode("break");setSeconds(300);onToast("Hết 25 phút! Chuông đã reo. Bắt đầu giờ nghỉ 5 phút nhé.")}else{setMode("study");setSeconds(1500);setRound(r=>r+1);onToast("Đã hết giờ nghỉ. Sẵn sàng cho chu kỳ tiếp theo!")}}},250);return()=>clearInterval(id)},[running,mode]);
  const completed=data.tasks.filter(t=>t.done).length;
  if(tab==="overview")return <div className="ishtar-dashboard">
- <div className="ishtar-dashboard__greeting"><h1>Chào buổi sáng, {name||"bạn"}!</h1><p>Học tập là hành trình, và bạn đang đi đúng hướng.</p></div>
+ <div className="ishtar-dashboard__greeting"><h1>Chào mừng trở lại, {name||"bạn"}!</h1><p>Học tập là hành trình, và bạn đang đi đúng hướng.</p></div>
  <div className="ishtar-dashboard__stats">
   <section className="ishtar-stat"><div className="ishtar-stat__icon"><CheckCircle2 size={22}/></div><div className="ishtar-stat__copy"><span>Nhiệm vụ</span><strong>{completed}/{data.tasks.length}</strong><small>đã hoàn thành</small></div><span className="ishtar-stat__star">✦</span></section>
   <section className="ishtar-stat"><div className="ishtar-stat__icon"><CalendarDays size={22}/></div><div className="ishtar-stat__copy"><span>Thời khóa biểu</span><strong>{data.sessions.length}</strong><small>buổi học đã lên lịch</small></div><span className="ishtar-stat__star">✦</span></section>
