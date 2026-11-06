@@ -124,7 +124,6 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
    onToast("Không thể lưu dữ liệu học tập. Bộ nhớ trình duyệt có thể đã đầy; dữ liệu hiện tại vẫn còn trên trang.");
   }
  },[data,theme,ready,canPersist]);
- useEffect(()=>{if(ready&&canPersist){try{const key="ishtar-study-data-v2";const previous=localStorage.getItem(key);if(previous){try{JSON.parse(previous);localStorage.setItem(key+"-backup",previous)}catch{}}localStorage.setItem(key,JSON.stringify({...data,theme}))}catch{onToast("Bộ nhớ trình duyệt đã đầy. Hãy giảm dung lượng tệp/avatar.")}}},[data,theme,ready,canPersist]);
  useEffect(()=>{document.documentElement.dataset.theme=theme==="dark"?"blue":theme;document.documentElement.classList.toggle("dark-theme",theme==="dark")},[theme]);
  const [taskTitle,setTaskTitle]=useState(""),[taskSubject,setTaskSubject]=useState(""),[taskDue,setTaskDue]=useState("");
  const [taskFilter,setTaskFilter]=useState<"all"|"pending"|"done"|"overdue">("all");
