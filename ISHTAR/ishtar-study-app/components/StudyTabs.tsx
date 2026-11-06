@@ -20,6 +20,37 @@ const isValidExamScore=(exam:string,value:number)=>{const scale=examScales[exam]
 function Card({children,className=""}:{children:React.ReactNode;className?:string}){return <section className={"rounded-3xl bg-white p-5 shadow-sm sm:p-6 "+className}>{children}</section>}
 function Heading({title,desc}:{title:string;desc:string}){return <div className="mb-3"><h1 className="text-2xl font-bold text-stone-800 sm:text-3xl">{title}</h1><p className="mt-2 text-sm text-stone-400">{desc}</p></div>}
 function Empty({children}:{children:string}){return <p className="rounded-2xl bg-stone-50 p-6 text-center text-sm text-stone-400">{children}</p>}
+function isRecord(value:unknown):value is Record<string,any>{return Boolean(value)&&typeof value==="object"&&!Array.isArray(value)}
+function hasStrings(value:unknown,keys:string[]){return isRecord(value)&&keys.every(key=>typeof value[key]==="string")}
+function validArray(value:unknown,check:(item:unknown)=>boolean){return value===undefined||Array.isArray(value)&&value.every(check)}
+function isStudyData(value:unknown):value is Partial<AppData>{
+ if(!isRecord(value))return false;
+ if(value.name!==undefined&&typeof value.name!=="string")return false;
+ if(value.avatar!==undefined&&typeof value.avatar!=="string")return false;
+ if(value.subjects!==undefined&&(!Array.isArray(value.subjects)||!value.subjects.every((x:unknown)=>typeof x==="string")))return false;
+ if(value.dailyGoal!==undefined&&(typeof value.dailyGoal!=="number"||!Number.isFinite(value.dailyGoal)))return false;
+ if(value.theme!==undefined&&value.theme!=="blue"&&value.theme!=="dark")return false;
+ if(!validArray(value.tasks,x=>hasStrings(x,["id","title","subject","due"])&&typeof x.done==="boolean"))return false;
+ if(!validArray(value.deadlines,x=>hasStrings(x,["id","title","date"])&&typeof x.done==="boolean"&&(x.taskId===undefined||typeof x.taskId==="string")))return false;
+ if(!validArray(value.events,x=>hasStrings(x,["id","title","date"])&&(x.repeat===undefined||["none","weekly","yearly"].includes(x.repeat))))return false;
+ if(!validArray(value.grades,x=>hasStrings(x,["id","subject"])&&Number.isFinite(x.score)&&Number.isFinite(x.weight)))return false;
+ if(!validArray(value.sessions,x=>hasStrings(x,["id","subject","start","end"])&&Number.isFinite(x.day)))return false;
+ if(!validArray(value.resources,x=>hasStrings(x,["id","title","url"])&&(x.isStarred===undefined||typeof x.isStarred==="boolean")))return false;
+ if(!validArray(value.words,x=>hasStrings(x,["id","term","meaning"])&&(x.example===undefined||typeof x.example==="string")))return false;
+ if(!validArray(value.goals,x=>hasStrings(x,["id","exam","target","examDate","createdAt"])&&Number.isFinite(x.scoreMin)&&Number.isFinite(x.scoreMax)&&Array.isArray(x.scores)&&x.scores.every((s:unknown)=>hasStrings(s,["id","date"])&&Number.isFinite(s.score))))return false;
+ return true;
+}
+function normalizeStudyData(d:Partial<AppData>):AppData{
+ const deadlines=d.deadlines||[];
+ return {...blank,...d,tasks:[...(d.tasks||[]),...deadlines.filter((x:any)=>!x.taskId).map((x:any)=>({id:x.id,title:x.title,subject:"Khác",due:x.date,done:Boolean(x.done)}))],deadlines:[],events:d.events||[],grades:d.grades||[],sessions:(d.sessions||[]).map((s:Session)=>({...s,day:s.day===0?7:s.day})),resources:(d.resources||[]).map((r:Resource)=>({...r,isStarred:Boolean(r.isStarred)})),words:d.words||[],goals:d.goals||[]};
+}
+function preserveCorruptData(key:string,raw:string){
+ const corruptKey=key+"-corrupt-backup";
+ if(localStorage.getItem(corruptKey))return true;
+ localStorage.setItem(corruptKey,raw);
+ return localStorage.getItem(corruptKey)===raw;
+}
+
 export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,assistantEnabled,onAssistantChange,avatar,onNameChange,onAvatarChange,wallpaper,wallpaperOffsetY,onWallpaperOffsetYChange,onWallpaperChange}:{tab:TabId;name:string;goal:number;onToast:(s:string)=>void;onNavigate:(tab:TabId)=>void;assistantEnabled:boolean;onAssistantChange:(v:boolean)=>void;avatar:string;onNameChange:(v:string)=>void;onAvatarChange:(f?:File)=>void;wallpaper:string;wallpaperOffsetY:number;onWallpaperOffsetYChange:(v:number)=>void;onWallpaperChange:(v:string)=>void}){
  const [data,setData]=useState<AppData>(blank),[ready,setReady]=useState(false),[canPersist,setCanPersist]=useState(true);
  const [theme,setTheme]=useState<"blue"|"dark">("blue");
@@ -27,7 +58,72 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
  const [gradeDraft,setGradeDraft]=useState({subject:"",weight:"1",score:""});
  const [gradeMode,setGradeMode]=useState<"ten"|"four">("ten");
  const [editingResource,setEditingResource]=useState("");
- useEffect(()=>{try{const key="ishtar-study-data-v2";const raw=localStorage.getItem(key);if(raw){let d:any;try{d=JSON.parse(raw)}catch(parseError){try{const backup=localStorage.getItem(key+"-backup");if(!backup)throw parseError;d=JSON.parse(backup);onToast("Dữ liệu học tập bị lỗi định dạng. ISHTAR đã khôi phục bản sao lưu gần nhất.")}catch{try{localStorage.setItem(key+"-corrupt-backup",raw)}catch{}setCanPersist(false);onToast("Dữ liệu học tập không đọc được. Bản dữ liệu lỗi đã được giữ riêng và ISHTAR sẽ không tự ghi đè lên nó.") ;setReady(true);return}}setData({...blank,...d,tasks:[...(d.tasks||[]),...(d.deadlines||[]).filter((x:any)=>!x.taskId).map((x:any)=>({id:x.id,title:x.title,subject:"Khác",due:x.date,done:Boolean(x.done)}))],deadlines:[],events:d.events||[],grades:d.grades||[],sessions:(d.sessions||[]).map((s:Session)=>({...s,day:s.day===0?7:s.day})),resources:(d.resources||[]).map((r:Resource)=>({...r,isStarred:Boolean(r.isStarred)})),words:d.words||[],goals:d.goals||[]});setTheme(d.theme==="dark"?"dark":"blue")}}catch{setCanPersist(false);onToast("Không thể đọc dữ liệu học tập từ bộ nhớ trình duyệt.")}setReady(true)},[]);
+ useEffect(()=>{
+  const key="ishtar-study-data-v2";
+  try{
+   const raw=localStorage.getItem(key);
+   if(raw){
+    let parsed:unknown;
+    try{parsed=JSON.parse(raw)}catch{parsed=null}
+    if(isStudyData(parsed)){
+     setData(normalizeStudyData(parsed));
+     setTheme(parsed.theme==="dark"?"dark":"blue");
+    }else{
+     let preserved=false;
+     try{preserved=preserveCorruptData(key,raw)}catch{preserved=false}
+     let backup:unknown=null;
+     try{const backupRaw=localStorage.getItem(key+"-backup");backup=backupRaw?JSON.parse(backupRaw):null}catch{}
+     if(isStudyData(backup)){
+      setData(normalizeStudyData(backup));
+      setTheme(backup.theme==="dark"?"dark":"blue");
+      setCanPersist(preserved);
+      onToast(preserved?"Dữ liệu chính bị lỗi. ISHTAR đã giữ bản lỗi và khôi phục bản sao lưu gần nhất.":"Đã tìm thấy bản sao lưu nhưng không thể giữ bản dữ liệu lỗi. Chế độ chỉ đọc được bật để bảo vệ dữ liệu.");
+     }else{
+      setCanPersist(false);
+      onToast(preserved?"Dữ liệu học tập bị lỗi hoặc sai cấu trúc. Đã giữ bản gốc; không tự ghi đè để tránh mất dữ liệu.":"Dữ liệu học tập bị lỗi và không thể tạo bản lưu an toàn. ISHTAR đã khóa việc ghi dữ liệu.");
+     }
+    }
+   }else{
+    const backupRaw=localStorage.getItem(key+"-backup");
+    if(backupRaw){
+     let backup:unknown=null;
+     try{backup=JSON.parse(backupRaw)}catch{}
+     if(isStudyData(backup)){
+      setData(normalizeStudyData(backup));
+      setTheme(backup.theme==="dark"?"dark":"blue");
+      onToast("Không tìm thấy dữ liệu chính. ISHTAR đã nạp bản sao lưu gần nhất.");
+     }else{
+      setCanPersist(false);
+      onToast("Bản sao lưu không hợp lệ. ISHTAR không tự tạo dữ liệu mới để tránh ghi đè.");
+     }
+    }
+   }
+  }catch{
+   setCanPersist(false);
+   onToast("Không thể truy cập bộ nhớ trình duyệt. Dữ liệu sẽ không bị tự ghi đè.");
+  }
+  setReady(true);
+ },[]);
+ useEffect(()=>{
+  if(!ready||!canPersist)return;
+  const key="ishtar-study-data-v2";
+  const next=JSON.stringify({...data,theme});
+  try{
+   const previous=localStorage.getItem(key);
+   if(previous){
+    let parsed:unknown=null;
+    try{parsed=JSON.parse(previous)}catch{}
+    if(isStudyData(parsed)){
+     try{localStorage.setItem(key+"-backup",previous)}catch{
+      onToast("Không thể cập nhật bản sao lưu. ISHTAR vẫn sẽ thử lưu dữ liệu mới.");
+     }
+    }
+   }
+   localStorage.setItem(key,next);
+  }catch{
+   onToast("Không thể lưu dữ liệu học tập. Bộ nhớ trình duyệt có thể đã đầy; dữ liệu hiện tại vẫn còn trên trang.");
+  }
+ },[data,theme,ready,canPersist]);
  useEffect(()=>{if(ready&&canPersist){try{const key="ishtar-study-data-v2";const previous=localStorage.getItem(key);if(previous){try{JSON.parse(previous);localStorage.setItem(key+"-backup",previous)}catch{}}localStorage.setItem(key,JSON.stringify({...data,theme}))}catch{onToast("Bộ nhớ trình duyệt đã đầy. Hãy giảm dung lượng tệp/avatar.")}}},[data,theme,ready,canPersist]);
  useEffect(()=>{document.documentElement.dataset.theme=theme==="dark"?"blue":theme;document.documentElement.classList.toggle("dark-theme",theme==="dark")},[theme]);
  const [taskTitle,setTaskTitle]=useState(""),[taskSubject,setTaskSubject]=useState(""),[taskDue,setTaskDue]=useState("");
