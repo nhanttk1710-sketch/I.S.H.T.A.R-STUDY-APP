@@ -44,7 +44,7 @@ const newSession = (date: string, ids: string[]): Session => ({
 });
 
 const normalize = (value: string) =>
-  value.trim().toLowerCase().replace(/\\s+/g, " ");
+  value.trim().toLowerCase().replace(/\s+/g, " ");
 
 const shuffle = <T,>(items: T[]): T[] => {
   const result = [...items];
