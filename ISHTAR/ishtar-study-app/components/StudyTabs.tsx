@@ -37,7 +37,7 @@ function isStudyData(value:unknown):value is Partial<AppData>{
  if(!validArray(value.sessions,x=>hasStrings(x,["id","subject","start","end"])&&Number.isFinite(x.day)))return false;
  if(!validArray(value.resources,x=>hasStrings(x,["id","title","url"])&&(x.isStarred===undefined||typeof x.isStarred==="boolean")))return false;
  if(!validArray(value.words,x=>hasStrings(x,["id","term","meaning"])&&(x.example===undefined||typeof x.example==="string")))return false;
- if(!validArray(value.goals,x=>hasStrings(x,["id","exam","target","examDate","createdAt"])&&Number.isFinite(x.scoreMin)&&Number.isFinite(x.scoreMax)&&Array.isArray(x.scores)&&x.scores.every(s=>isRecord(s)&&hasStrings(s,["id","date"])&&Number.isFinite(s.score))))return false;
+ if(!validArray(value.goals,x=>hasStrings(x,["id","exam","target","examDate","createdAt"])&&Number.isFinite(x.scoreMin)&&Number.isFinite(x.scoreMax)&&Array.isArray(x.scores)&&x.scores.every((s:unknown)=>isRecord(s)&&hasStrings(s,["id","date"])&&typeof s.score==="number"&&Number.isFinite(s.score))))return false;
  return true;
 }
 function normalizeStudyData(d:Partial<AppData>):AppData{
