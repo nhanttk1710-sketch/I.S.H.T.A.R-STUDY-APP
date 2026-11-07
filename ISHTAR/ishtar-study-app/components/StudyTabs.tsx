@@ -194,16 +194,19 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
      </div>
      <div className="ishtar-pomodoro-subject">
       <label htmlFor="pomodoro-subject">Môn học <span>(không bắt buộc)</span></label>
-      <div className="ishtar-pomodoro-subject__controls">
+      <div className="ishtar-pomodoro-subject__select">
        <select id="pomodoro-subject" value={pomodoroSubject} onChange={e=>setPomodoroSubject(e.target.value)} disabled={running}>
         <option value="">Không gắn môn học</option>
         {data.subjects.map(subject=><option key={subject} value={subject}>{subject}</option>)}
        </select>
-       <form onSubmit={addPomodoroSubject}>
-        <input aria-label="Tên môn học mới" value={pomodoroSubjectDraft} onChange={e=>setPomodoroSubjectDraft(e.target.value)} placeholder="Thêm môn học..." maxLength={40} disabled={running}/>
-        <button type="submit" disabled={running||!pomodoroSubjectDraft.trim()} aria-label="Thêm môn học"><Plus size={17}/></button>
-       </form>
       </div>
+      <form className="ishtar-pomodoro-add-subject" onSubmit={addPomodoroSubject}>
+       <label htmlFor="pomodoro-new-subject">+ Thêm môn học mới</label>
+       <div className="ishtar-pomodoro-add-subject__row">
+        <input id="pomodoro-new-subject" aria-label="Tên môn học mới" value={pomodoroSubjectDraft} onChange={e=>setPomodoroSubjectDraft(e.target.value)} placeholder="Ví dụ: IELTS, SAT, Toán..." maxLength={40} disabled={running}/>
+        <button type="submit" disabled={running||!pomodoroSubjectDraft.trim()}>+ Thêm môn</button>
+       </div>
+      </form>
      </div>
      <div className="ishtar-pomodoro-clock" aria-live="off">
       <div>
