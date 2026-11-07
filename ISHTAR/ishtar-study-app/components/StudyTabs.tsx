@@ -5,7 +5,7 @@ import {CartesianGrid,Line,LineChart,ResponsiveContainer,Tooltip,XAxis,YAxis} fr
 import type {AppData,Goal,TabId,Task,Session,Resource,Word} from "./types";
 import ImportantEventsCalendar from "./ImportantEventsCalendar";
 import VocabularyVault from "./VocabularyVault";
-import { EMPTY_STUDY_DATA as blank, isStudyData, normalizeStudyData, preserveCorruptData, writeStudyData } from "./studyStorage";
+import { EMPTY_STUDY_DATA as blank, STUDY_DATA_KEY, isStudyData, normalizeStudyData, preserveCorruptData, writeStudyData } from "./studyStorage";
 
 const days=["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7","Chủ nhật"];
 const uid=()=>Math.random().toString(36).slice(2,10);
@@ -30,7 +30,7 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
  const [gradeMode,setGradeMode]=useState<"ten"|"four">("ten");
  const [editingResource,setEditingResource]=useState("");
  useEffect(()=>{
-  const key="ishtar-study-data-v2";
+  const key=STUDY_DATA_KEY;
   try{
    const raw=localStorage.getItem(key);
    if(raw){
