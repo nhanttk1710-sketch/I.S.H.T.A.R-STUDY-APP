@@ -41,6 +41,7 @@ export default function IshtarChat({
   const [position, setPosition] = useState<Position>({ right: EDGE, bottom: EDGE });
   const [viewport, setViewport] = useState<Viewport>({ width: 1280, height: 800 });
   const [dragging, setDragging] = useState(false);
+  const [positionReady, setPositionReady] = useState(false);
   const dragRef = useRef<DragState | null>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
 
@@ -75,18 +76,19 @@ export default function IshtarChat({
     } catch {
       // Invalid or unavailable saved data falls back to the default corner.
     }
+    setPositionReady(true);
 
     return () => window.removeEventListener("resize", readViewport);
   }, []);
 
   useEffect(() => {
-    if (dragging) return;
+    if (!positionReady || dragging) return;
     try {
       localStorage.setItem(POSITION_KEY, JSON.stringify(position));
     } catch {
       // Position persistence is optional when browser storage is unavailable.
     }
-  }, [position, dragging]);
+  }, [position, positionReady, dragging]);
 
   const startDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
