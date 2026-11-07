@@ -208,7 +208,8 @@ export default function DataBackup({ onToast }: { onToast: (message: string) => 
         throw new Error("Trình duyệt không đủ dung lượng để khôi phục. Đã thử hoàn tác và tải backup trước khôi phục.");
       }
 
-      refreshLocalDataCount();\n      onToast(`Đã khôi phục ${backup.entries.length} mục. Hãy tải lại trang để các tính năng nạp dữ liệu mới.`);
+      refreshLocalDataCount();
+      onToast(`Đã khôi phục ${backup.entries.length} mục. Hãy tải lại trang để các tính năng nạp dữ liệu mới.`);
     } catch (error) {
       onToast(error instanceof Error ? error.message : "Không thể đọc file backup.");
     } finally {
