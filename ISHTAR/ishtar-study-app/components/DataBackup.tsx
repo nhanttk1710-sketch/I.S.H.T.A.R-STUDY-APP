@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Download, Upload, ShieldCheck, AlertTriangle, FileJson } from "lucide-react";
 import { isStudyData } from "./studyStorage";
 
@@ -137,6 +137,23 @@ function validateBackup(value: unknown): BackupFile {
 export default function DataBackup({ onToast }: { onToast: (message: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [localDataCount, setLocalDataCount] = useState<number | null>(null);
+
+  const refreshLocalDataCount = () => {
+    try {
+      let count = 0;
+      for (let index = 0; index < localStorage.length; index += 1) {
+        if (localStorage.key(index)?.startsWith("ishtar")) count += 1;
+      }
+      setLocalDataCount(count);
+    } catch {
+      setLocalDataCount(null);
+    }
+  };
+
+  useEffect(() => {
+    refreshLocalDataCount();
+  }, []);
 
   const exportData = () => {
     try {
@@ -191,7 +208,7 @@ export default function DataBackup({ onToast }: { onToast: (message: string) => 
         throw new Error("Trình duyệt không đủ dung lượng để khôi phục. Đã thử hoàn tác và tải backup trước khôi phục.");
       }
 
-      onToast(`Đã khôi phục ${backup.entries.length} mục. Hãy tải lại trang để các tính năng nạp dữ liệu mới.`);
+      refreshLocalDataCount();\n      onToast(`Đã khôi phục ${backup.entries.length} mục. Hãy tải lại trang để các tính năng nạp dữ liệu mới.`);
     } catch (error) {
       onToast(error instanceof Error ? error.message : "Không thể đọc file backup.");
     } finally {
@@ -217,6 +234,19 @@ export default function DataBackup({ onToast }: { onToast: (message: string) => 
           <AlertTriangle size={17} /> Lưu ý quan trọng
         </div>
         Backup chỉ chứa dữ liệu của địa chỉ website hiện tại. Các Preview URL khác nhau có LocalStorage riêng. Muốn chuyển dữ liệu từ Preview cũ sang Preview mới, hãy xuất file ở Preview cũ rồi nhập file ở Preview mới.
+      </div>
+
+      <div className="mt-4 flex flex-col gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-slate-800">Kho dữ liệu trên trình duyệt này</p>
+          <p className="mt-1 text-xs text-slate-500">Số khóa I.S.H.T.A.R. đang được lưu trên đúng địa chỉ website hiện tại.</p>
+          <p className="mt-2 text-sm font-bold text-emerald-700">
+            {localDataCount === null ? "Chưa kiểm tra được" : `${localDataCount} khóa dữ liệu`}
+          </p>
+        </div>
+        <button type="button" onClick={refreshLocalDataCount} className="shrink-0 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+          Kiểm tra lại
+        </button>
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
