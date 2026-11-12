@@ -27,26 +27,51 @@ function createId() {
   return `evt-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
 }
 
+const EVENT_TYPES: LearningEventType[] = [
+  "task_created", "task_completed", "pomodoro_completed",
+  "vocabulary_added", "vocabulary_mastered", "vocabulary_review",
+  "flashcard_round_completed", "grade_recorded", "goal_score_recorded",
+];
+
+function isLearningEvent(item: unknown): item is LearningEvent {
+  if (!item || typeof item !== "object" || Array.isArray(item)) return false;
+  const event = item as Partial<LearningEvent>;
+  return typeof event.id === "string" &&
+    EVENT_TYPES.includes(event.type as LearningEventType) &&
+    typeof event.occurredAt === "string" &&
+    event.schemaVersion === 1 &&
+    Boolean(event.payload) &&
+    typeof event.payload === "object" &&
+    !Array.isArray(event.payload);
+}
+
+function preserveInvalidArchive(raw: string) {
+  try {
+    const backupKey = LEARNING_ARCHIVE_KEY + "-corrupt-backup";
+    if (!window.localStorage.getItem(backupKey)) {
+      window.localStorage.setItem(backupKey, raw);
+    }
+  } catch {
+    // Never replace the original archive if preservation is not possible.
+  }
+}
+
 export function readLearningArchive(): LearningEvent[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(LEARNING_ARCHIVE_KEY);
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item): item is LearningEvent =>
-      Boolean(item) &&
-      typeof item === "object" &&
-      typeof item.id === "string" &&
-      typeof item.type === "string" &&
-      typeof item.occurredAt === "string" &&
-      typeof item.schemaVersion === "number" &&
-      item.schemaVersion === 1 &&
-      Boolean(item.payload) &&
-      typeof item.payload === "object" &&
-      !Array.isArray(item.payload)
-    );
+    if (!Array.isArray(parsed) || !parsed.every(isLearningEvent)) {
+      preserveInvalidArchive(raw);
+      return [];
+    }
+    return parsed;
   } catch {
+    try {
+      const raw = window.localStorage.getItem(LEARNING_ARCHIVE_KEY);
+      if (raw) preserveInvalidArchive(raw);
+    } catch {}
     return [];
   }
 }
