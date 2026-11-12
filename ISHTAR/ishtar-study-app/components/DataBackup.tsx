@@ -98,6 +98,36 @@ function validateBackup(value: unknown): BackupFile {
     }
   }
 
+  const archive = entries.find((entry) => entry.key === "ishtar-learning-archive-v1");
+  if (archive) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(archive.value);
+    } catch {
+      throw new Error("Learning Archive trong file backup bị lỗi JSON.");
+    }
+    const allowedTypes = new Set([
+      "task_created", "task_completed", "pomodoro_completed",
+      "vocabulary_added", "vocabulary_mastered", "vocabulary_review",
+      "flashcard_round_completed", "grade_recorded", "goal_score_recorded",
+    ]);
+    if (
+      !Array.isArray(parsed) ||
+      !parsed.every((event) =>
+        event &&
+        typeof event.id === "string" &&
+        allowedTypes.has(event.type) &&
+        typeof event.occurredAt === "string" &&
+        event.schemaVersion === 1 &&
+        event.payload &&
+        typeof event.payload === "object" &&
+        !Array.isArray(event.payload)
+      )
+    ) {
+      throw new Error("Learning Archive không đúng cấu trúc. Chưa có dữ liệu nào bị thay đổi.");
+    }
+  }
+
   const playlist = entries.find((entry) => entry.key === "ishtar-music-playlists-v1");
   if (playlist) {
     let parsed: unknown;
