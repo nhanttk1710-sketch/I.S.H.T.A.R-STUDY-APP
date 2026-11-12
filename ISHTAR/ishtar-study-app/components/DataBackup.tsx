@@ -216,17 +216,45 @@ export default function DataBackup({ onToast }: { onToast: (message: string) => 
       );
       if (!confirmed) return;
 
+      const archiveKey = "ishtar-learning-archive-v1";
+      const restoreEntries = backup.entries.map((entry) => {
+        if (entry.key !== archiveKey) return entry;
+        const incoming = JSON.parse(entry.value) as Array<{ id: string; occurredAt: string }>;
+        const currentRaw = localStorage.getItem(archiveKey);
+        let current: Array<{ id: string; occurredAt: string }> = [];
+        if (currentRaw) {
+          let parsed: unknown;
+          try { parsed = JSON.parse(currentRaw); } catch {
+            throw new Error("Learning Archive hiện tại bị lỗi JSON. Đã giữ nguyên dữ liệu và hủy khôi phục.");
+          }
+          if (!Array.isArray(parsed) || !parsed.every((event) =>
+            event && typeof event.id === "string" && typeof event.occurredAt === "string"
+          )) {
+            throw new Error("Learning Archive hiện tại không hợp lệ. Đã giữ nguyên dữ liệu và hủy khôi phục.");
+          }
+          current = parsed;
+        }
+        const merged = new Map(current.map((event) => [event.id, event]));
+        for (const event of incoming) {
+          if (!merged.has(event.id)) merged.set(event.id, event);
+        }
+        const value = JSON.stringify([...merged.values()].sort(
+          (a, b) => b.occurredAt.localeCompare(a.occurredAt)
+        ));
+        return { ...entry, value };
+      });
+
       const before = collectEntries();
       const beforeMap = new Map(before.map((entry) => [entry.key, entry.value]));
       downloadBackup(before, "-before-restore");
 
       try {
-        for (const entry of backup.entries) {
+        for (const entry of restoreEntries) {
           localStorage.setItem(entry.key, entry.value);
         }
       } catch {
         // Roll back every key touched by this restore if the browser rejects a write.
-        for (const entry of backup.entries) {
+        for (const entry of restoreEntries) {
           const oldValue = beforeMap.get(entry.key);
           try {
             if (oldValue === undefined) localStorage.removeItem(entry.key);
