@@ -1,4 +1,4 @@
-export type TabId="overview"|"schedule"|"tasks"|"grades"|"pomodoro"|"resources"|"language"|"flashcards"|"playlist"|"settings";
+export type TabId="overview"|"schedule"|"tasks"|"grades"|"pomodoro"|"resources"|"language"|"flashcards"|"playlist"|"archive"|"settings";
 export type Task={id:string;title:string;subject:string;due:string;done:boolean;plannedDate?:string;priority?:"low"|"medium"|"high"};
 export type Deadline={id:string;title:string;date:string;time?:string;taskId?:string;done:boolean};
 export type PersonalEvent={id:string;title:string;date:string;time?:string;allDay?:boolean;notes?:string;repeat?: "none"|"yearly"|"weekly"};

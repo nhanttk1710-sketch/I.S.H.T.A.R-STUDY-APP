@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Word } from "./types";
+import { appendLearningEvent } from "./learningArchive";
 
 type Round = {
   passed: boolean;
@@ -191,13 +192,9 @@ export default function VocabularyVault({
   const addWord = (event: React.FormEvent) => {
     event.preventDefault();
     if (!draft.term.trim() || !draft.meaning.trim()) return;
-    onWordsChange([
-      ...words,
-      {
-        ...draft,
-        id: Math.random().toString(36).slice(2, 10),
-      },
-    ]);
+    const newWord = { ...draft, id: Math.random().toString(36).slice(2, 10) };
+    onWordsChange([...words, newWord]);
+    appendLearningEvent("vocabulary_added", { term: newWord.term, meaning: newWord.meaning }, { entityId: newWord.id });
     setDraft({ term: "", meaning: "", example: "" });
   };
 
@@ -236,6 +233,7 @@ export default function VocabularyVault({
     const answers = state.rounds[state.round].answers;
     const score = answers.filter((answer) => answer.ok).length;
     const passed = score >= limit;
+    appendLearningEvent("flashcard_round_completed", { round: state.round + 1, score, total: order.length, passed }, { entityId: `flashcard-${today}-${state.round + 1}-${Date.now()}` });
     const rounds = state.rounds.map((round, index) =>
       index === state.round
         ? {
@@ -281,8 +279,13 @@ export default function VocabularyVault({
     }));
   };
 
-  const saveKnown = (id: string) =>
+  const saveKnown = (id: string) => {
+    const selectedWord = words.find((word) => word.id === id);
+    if (selectedWord && !knownWords.includes(id)) {
+      appendLearningEvent("vocabulary_mastered", { term: selectedWord.term }, { entityId: id });
+    }
     onKnownWordsChange([...new Set([...knownWords, id])]);
+  };
 
   return (
     <>
@@ -390,9 +393,11 @@ export default function VocabularyVault({
                 <button
                   type="button"
                   onClick={() =>
-                    onKnownWordsChange(
-                      knownWords.filter((id) => id !== dailyWords[index].id),
-                    )
+                    (() => {
+                      const selectedWord = dailyWords[index];
+                      appendLearningEvent("vocabulary_review", { term: selectedWord.term }, { entityId: `${selectedWord.id}-${today}-${Date.now()}` });
+                      onKnownWordsChange(knownWords.filter((id) => id !== selectedWord.id));
+                    })()
                   }
                   className="text-sm text-amber-600"
                 >
