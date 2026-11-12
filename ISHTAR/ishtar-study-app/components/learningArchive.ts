@@ -83,7 +83,20 @@ export function appendLearningEvent(
 ): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const current = readLearningArchive();
+    const raw = window.localStorage.getItem(LEARNING_ARCHIVE_KEY);
+    let current: LearningEvent[] = [];
+    if (raw) {
+      let parsed: unknown;
+      try { parsed = JSON.parse(raw); } catch {
+        preserveInvalidArchive(raw);
+        return false;
+      }
+      if (!Array.isArray(parsed) || !parsed.every(isLearningEvent)) {
+        preserveInvalidArchive(raw);
+        return false;
+      }
+      current = parsed;
+    }
     const id = options.id || createId();
     if (current.some((event) => event.id === id)) return true;
     const next: LearningEvent = {
