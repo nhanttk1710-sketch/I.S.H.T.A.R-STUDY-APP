@@ -191,8 +191,17 @@ export default function VocabularyVault({
 
   const addWord = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!draft.term.trim() || !draft.meaning.trim()) return;
-    const newWord = { ...draft, id: Math.random().toString(36).slice(2, 10) };
+    const term = draft.term.trim();
+    const meaning = draft.meaning.trim();
+    if (!term || !meaning) return;
+    if (words.some((word) => normalize(word.term) === normalize(term))) {
+      onToast("Từ này đã có trong kho. Hãy kiểm tra lại để tránh trùng lặp.");
+      return;
+    }
+    const id = typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2, 12);
+    const newWord = { term, meaning, example: draft.example.trim(), id };
     onWordsChange([...words, newWord]);
     appendLearningEvent("vocabulary_added", { term: newWord.term, meaning: newWord.meaning }, { entityId: newWord.id });
     setDraft({ term: "", meaning: "", example: "" });
