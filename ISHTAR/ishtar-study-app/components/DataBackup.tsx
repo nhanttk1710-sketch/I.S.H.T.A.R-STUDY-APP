@@ -98,6 +98,61 @@ function validateBackup(value: unknown): BackupFile {
     }
   }
 
+  const vocabulary = entries.find((entry) => entry.key === "ishtar-vocabulary-vault-v1");
+  if (vocabulary) {
+    let parsed: unknown;
+    try { parsed = JSON.parse(vocabulary.value); }
+    catch { throw new Error("Kho từ vựng trong file backup bị lỗi JSON."); }
+    if (
+      !parsed || typeof parsed !== "object" || Array.isArray(parsed) ||
+      (parsed as any).schemaVersion !== 1 ||
+      (parsed as any).mode !== "guest" ||
+      typeof (parsed as any).createdAt !== "string" ||
+      typeof (parsed as any).updatedAt !== "string" ||
+      !Array.isArray((parsed as any).words) ||
+      !(parsed as any).words.every((word: any) =>
+        word && typeof word.id === "string" &&
+        typeof word.term === "string" &&
+        typeof word.meaning === "string" &&
+        (word.example === undefined || typeof word.example === "string")
+      ) ||
+      !Array.isArray((parsed as any).knownWordIds) ||
+      !(parsed as any).knownWordIds.every((id: unknown) => typeof id === "string")
+    ) {
+      throw new Error("Kho từ vựng trong file backup không đúng cấu trúc.");
+    }
+  }
+
+  const archive = entries.find((entry) => entry.key === "ishtar-learning-archive-v1");
+  if (archive) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(archive.value);
+    } catch {
+      throw new Error("Learning Archive trong file backup bị lỗi JSON.");
+    }
+    const allowedTypes = new Set([
+      "task_created", "task_completed", "pomodoro_completed",
+      "vocabulary_added", "vocabulary_mastered", "vocabulary_review",
+      "flashcard_round_completed", "grade_recorded", "goal_score_recorded",
+    ]);
+    if (
+      !Array.isArray(parsed) ||
+      !parsed.every((event) =>
+        event &&
+        typeof event.id === "string" &&
+        allowedTypes.has(event.type) &&
+        typeof event.occurredAt === "string" &&
+        event.schemaVersion === 1 &&
+        event.payload &&
+        typeof event.payload === "object" &&
+        !Array.isArray(event.payload)
+      )
+    ) {
+      throw new Error("Learning Archive không đúng cấu trúc. Chưa có dữ liệu nào bị thay đổi.");
+    }
+  }
+
   const playlist = entries.find((entry) => entry.key === "ishtar-music-playlists-v1");
   if (playlist) {
     let parsed: unknown;
@@ -186,17 +241,105 @@ export default function DataBackup({ onToast }: { onToast: (message: string) => 
       );
       if (!confirmed) return;
 
+      const archiveKey = "ishtar-learning-archive-v1";
+      const vocabularyKey = "ishtar-vocabulary-vault-v1";
+      const incomingStudy = backup.entries.find((entry) => entry.key === "ishtar-study-data-v2");
+      const incomingLegacyKnown = backup.entries.find((entry) => entry.key === "ishtar-known-words");
+      const incomingVocabulary = backup.entries.find((entry) => entry.key === vocabularyKey);
+      let incomingVault: any = null;
+
+      if (incomingVocabulary) {
+        incomingVault = JSON.parse(incomingVocabulary.value);
+      } else if (incomingStudy) {
+        const study = JSON.parse(incomingStudy.value);
+        let knownWordIds: string[] = [];
+        if (incomingLegacyKnown) {
+          try {
+            const parsedKnown = JSON.parse(incomingLegacyKnown.value);
+            if (Array.isArray(parsedKnown)) knownWordIds = parsedKnown.filter((id) => typeof id === "string");
+          } catch {}
+        }
+        incomingVault = {
+          schemaVersion: 1,
+          mode: "guest",
+          createdAt: backup.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          words: Array.isArray(study.words) ? study.words : [],
+          knownWordIds,
+        };
+      }
+
+      const restoreEntries = backup.entries.filter((entry) =>
+        entry.key !== vocabularyKey && entry.key !== archiveKey
+      ).map((entry) => entry);
+
+      if (incomingVault) {
+        const currentRaw = localStorage.getItem(vocabularyKey);
+        let currentVault: any = null;
+        if (currentRaw) {
+          try { currentVault = JSON.parse(currentRaw); }
+          catch {
+            throw new Error("Kho từ vựng hiện tại bị lỗi JSON. Đã giữ nguyên dữ liệu và hủy khôi phục.");
+          }
+          if (
+            !currentVault || currentVault.schemaVersion !== 1 ||
+            currentVault.mode !== "guest" || !Array.isArray(currentVault.words) ||
+            !Array.isArray(currentVault.knownWordIds)
+          ) {
+            throw new Error("Kho từ vựng hiện tại không hợp lệ. Đã giữ nguyên dữ liệu và hủy khôi phục.");
+          }
+        }
+        const words = new Map<string, any>();
+        for (const word of currentVault?.words || []) words.set(word.id, word);
+        for (const word of incomingVault.words || []) if (!words.has(word.id)) words.set(word.id, word);
+        const knownWordIds = new Set<string>(currentVault?.knownWordIds || []);
+        for (const id of incomingVault.knownWordIds || []) knownWordIds.add(id);
+        const mergedVault = {
+          schemaVersion: 1,
+          mode: "guest",
+          createdAt: currentVault?.createdAt || incomingVault.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          words: [...words.values()],
+          knownWordIds: [...knownWordIds],
+        };
+        restoreEntries.push({ key: vocabularyKey, value: JSON.stringify(mergedVault) });
+      }
+
+      const incomingArchive = backup.entries.find((entry) => entry.key === archiveKey);
+      if (incomingArchive) {
+        const incoming = JSON.parse(incomingArchive.value) as Array<{ id: string; occurredAt: string }>;
+        const currentRaw = localStorage.getItem(archiveKey);
+        let current: Array<{ id: string; occurredAt: string }> = [];
+        if (currentRaw) {
+          let parsed: unknown;
+          try { parsed = JSON.parse(currentRaw); } catch {
+            throw new Error("Learning Archive hiện tại bị lỗi JSON. Đã giữ nguyên dữ liệu và hủy khôi phục.");
+          }
+          if (!Array.isArray(parsed) || !parsed.every((event) =>
+            event && typeof event.id === "string" && typeof event.occurredAt === "string"
+          )) {
+            throw new Error("Learning Archive hiện tại không hợp lệ. Đã giữ nguyên dữ liệu và hủy khôi phục.");
+          }
+          current = parsed;
+        }
+        const merged = new Map(current.map((event) => [event.id, event]));
+        for (const event of incoming) if (!merged.has(event.id)) merged.set(event.id, event);
+        restoreEntries.push({
+          key: archiveKey,
+          value: JSON.stringify([...merged.values()].sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))),
+        });
+      }
       const before = collectEntries();
       const beforeMap = new Map(before.map((entry) => [entry.key, entry.value]));
       downloadBackup(before, "-before-restore");
 
       try {
-        for (const entry of backup.entries) {
+        for (const entry of restoreEntries) {
           localStorage.setItem(entry.key, entry.value);
         }
       } catch {
         // Roll back every key touched by this restore if the browser rejects a write.
-        for (const entry of backup.entries) {
+        for (const entry of restoreEntries) {
           const oldValue = beforeMap.get(entry.key);
           try {
             if (oldValue === undefined) localStorage.removeItem(entry.key);
@@ -281,7 +424,7 @@ export default function DataBackup({ onToast }: { onToast: (message: string) => 
 
       <div className="mt-4 flex items-start gap-2 text-xs leading-5 text-slate-500">
         <FileJson size={16} className="mt-0.5 shrink-0" />
-        Backup bao gồm các khóa dữ liệu I.S.H.T.A.R. trên trình duyệt hiện tại: hồ sơ, nhiệm vụ, lịch, từ vựng, tiến độ Flashcard, Pomodoro, Playlist và cài đặt. File JSON có thể chứa thông tin cá nhân; hãy giữ riêng tư.
+        Backup bao gồm các khóa dữ liệu I.S.H.T.A.R. trên trình duyệt hiện tại: hồ sơ, nhiệm vụ, lịch, Guest Vocabulary Vault, trạng thái từ đã thuộc, tiến độ Flashcard, Pomodoro, Learning Archive, Playlist và cài đặt. File JSON có thể chứa thông tin cá nhân; hãy giữ riêng tư.
       </div>
     </section>
   );

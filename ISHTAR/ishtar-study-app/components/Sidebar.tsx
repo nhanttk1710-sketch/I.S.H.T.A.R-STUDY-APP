@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import {LayoutGrid,CalendarDays,SquareCheck,ChartNoAxesColumnIncreasing,Timer,Folder,Languages,Layers,Headphones,Settings,PanelLeftClose,PanelLeftOpen,Sparkles} from "lucide-react";
+import {LayoutGrid,CalendarDays,SquareCheck,ChartNoAxesColumnIncreasing,Timer,Folder,Languages,Layers,Headphones,Archive,Settings,PanelLeftClose,PanelLeftOpen,Sparkles} from "lucide-react";
 import type {TabId} from "./types";
 interface SidebarProps{active:TabId;onChange:(tab:TabId)=>void;collapsed?:boolean;onToggle?:()=>void;logoImageUrl?:string}
 const items:{id:TabId;label:string;icon:React.ElementType}[]=[
@@ -13,6 +13,7 @@ const items:{id:TabId;label:string;icon:React.ElementType}[]=[
 {id:"language",label:"Ngôn ngữ",icon:Languages},
 {id:"flashcards",label:"Flashcard",icon:Layers},
 {id:"playlist",label:"Playlist",icon:Headphones},
+{id:"archive",label:"Learning Archive",icon:Archive},
 {id:"settings",label:"Cài đặt",icon:Settings},
 ];
 export const Sidebar:React.FC<SidebarProps>=({active,onChange,collapsed=false,onToggle,logoImageUrl="/ishtar-emblem.png"})=><aside className={`ishtar-sidebar ${collapsed?"ishtar-sidebar--collapsed":""}`}>
