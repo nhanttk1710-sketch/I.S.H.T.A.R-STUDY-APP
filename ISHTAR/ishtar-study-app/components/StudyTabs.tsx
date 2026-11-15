@@ -8,6 +8,7 @@ import VocabularyVault from "./VocabularyVault";
 import DataBackup from "./DataBackup";
 import LearningArchive from "./LearningArchive";
 import { appendLearningEvent } from "./learningArchive";
+import { readGuestVocabularyVault, writeGuestVocabularyVault } from "./vocabularyStorage";
 import { EMPTY_STUDY_DATA as blank, STUDY_DATA_KEY, isStudyData, normalizeStudyData, preserveCorruptData, writeStudyData } from "./studyStorage";
 
 const days=["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7","Chủ nhật"];
@@ -27,6 +28,7 @@ function Empty({children}:{children:string}){return <p className="rounded-2xl bg
 
 export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,assistantEnabled,onAssistantChange,avatar,onNameChange,onAvatarChange,wallpaper,wallpaperOffsetY,onWallpaperOffsetYChange,onWallpaperChange}:{tab:TabId;name:string;goal:number;onToast:(s:string)=>void;onNavigate:(tab:TabId)=>void;assistantEnabled:boolean;onAssistantChange:(v:boolean)=>void;avatar:string;onNameChange:(v:string)=>void;onAvatarChange:(f?:File)=>void;wallpaper:string;wallpaperOffsetY:number;onWallpaperOffsetYChange:(v:number)=>void;onWallpaperChange:(v:string)=>void}){
  const [data,setData]=useState<AppData>(blank),[ready,setReady]=useState(false),[canPersist,setCanPersist]=useState(true);
+ const [vaultReady,setVaultReady]=useState(false),[vaultWritable,setVaultWritable]=useState(true);
  const [theme,setTheme]=useState<"blue"|"dark">("blue");
  const [profileOpen,setProfileOpen]=useState(false),[profileName,setProfileName]=useState(name),[profileAvatarFile,setProfileAvatarFile]=useState<File|null>(null),[profileAvatarPreview,setProfileAvatarPreview]=useState(avatar); const wallpaperInputRef=useRef<HTMLInputElement>(null);
  const [gradeDraft,setGradeDraft]=useState({subject:"",weight:"1",score:""});
@@ -84,6 +86,17 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
   if(result==="saved-without-backup") onToast("Không thể cập nhật bản sao lưu. ISHTAR vẫn đã lưu dữ liệu mới.");
   else if(result==="failed") onToast("Không thể lưu dữ liệu học tập. Bộ nhớ trình duyệt có thể đã đầy; dữ liệu hiện tại vẫn còn trên trang.");
  },[data,theme,ready,canPersist]);
+ useEffect(()=>{
+  if(!ready)return;
+  const result=readGuestVocabularyVault();
+  if(result.status==="valid"){
+    setData(current=>({...current,words:result.vault.words}));
+  }else if(result.status==="invalid"){
+    setVaultWritable(false);
+    onToast("Kho từ vựng riêng bị lỗi định dạng. ISHTAR đã giữ nguyên bản gốc và không ghi đè kho này.");
+  }
+  setVaultReady(true);
+ },[ready]);
  useEffect(()=>{document.documentElement.dataset.theme=theme==="dark"?"blue":theme;document.documentElement.classList.toggle("dark-theme",theme==="dark")},[theme]);
  const [taskTitle,setTaskTitle]=useState(""),[taskSubject,setTaskSubject]=useState(""),[taskDue,setTaskDue]=useState("");
  const [taskFilter,setTaskFilter]=useState<"all"|"pending"|"done"|"overdue">("all"),[taskEditId,setTaskEditId]=useState("");
@@ -102,7 +115,13 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
  const [knownWordsReady,setKnownWordsReady]=useState(false);
  const [today,setToday]=useState("");
  useEffect(()=>{const date=new Date();setToday(date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0"))},[]);
- useEffect(()=>{if(!today)return;try{const key="ishtar-known-words";const saved=localStorage.getItem(key);if(saved){const parsed=JSON.parse(saved);setKnownWords(Array.isArray(parsed)?parsed.filter((id):id is string=>typeof id==="string"):[])}else{const migrated=new Set<string>();for(let i=0;i<localStorage.length;i++){const storageKey=localStorage.key(i);if(!storageKey?.startsWith("ishtar-known-")||storageKey===key)continue;try{const legacy=JSON.parse(localStorage.getItem(storageKey)||"[]");if(Array.isArray(legacy))legacy.forEach(id=>{if(typeof id==="string")migrated.add(id)})}catch{}}const ids=[...migrated];setKnownWords(ids);if(ids.length)localStorage.setItem(key,JSON.stringify(ids))}}catch{setKnownWords([])}finally{setKnownWordsReady(true)}},[today]);
+ useEffect(()=>{if(!today||!vaultReady)return;try{const vault=readGuestVocabularyVault();if(vault.status==="valid"){setKnownWords(vault.vault.knownWordIds);return;}if(vault.status==="invalid"){setVaultWritable(false)}const key="ishtar-known-words";const saved=localStorage.getItem(key);if(saved){const parsed=JSON.parse(saved);setKnownWords(Array.isArray(parsed)?parsed.filter((id):id is string=>typeof id==="string"):[])}else{const migrated=new Set<string>();for(let i=0;i<localStorage.length;i++){const storageKey=localStorage.key(i);if(!storageKey?.startsWith("ishtar-known-")||storageKey===key)continue;try{const legacy=JSON.parse(localStorage.getItem(storageKey)||"[]");if(Array.isArray(legacy))legacy.forEach(id=>{if(typeof id==="string")migrated.add(id)})}catch{}}const ids=[...migrated];setKnownWords(ids);if(ids.length)localStorage.setItem(key,JSON.stringify(ids))}}catch{setKnownWords([])}finally{setKnownWordsReady(true)}},[today,vaultReady]);
+ useEffect(()=>{
+  if(!ready||!vaultReady||!knownWordsReady||!vaultWritable)return;
+  const result=writeGuestVocabularyVault(data.words,knownWords);
+  if(result==="failed")onToast("Không thể lưu Kho từ vựng riêng. Hãy kiểm tra dung lượng trình duyệt và xuất backup.");
+  else if(result==="invalid"){setVaultWritable(false);onToast("Kho từ vựng có dữ liệu lỗi; ISHTAR đã dừng ghi để bảo vệ bản gốc.");}
+ },[ready,vaultReady,knownWordsReady,vaultWritable,data.words,knownWords]);
  const dailyWords=useMemo(()=>{
   if(!today||!knownWordsReady)return [];
   const key="ishtar-daily-"+today;
