@@ -155,6 +155,14 @@ export default function VocabularyVault({
   const state = session;
 
   useEffect(() => {
+    if (!sessionReady || !today || session.date !== today || session.ids.length > 0 || dailyWords.length === 0) return;
+    setSession((previous) => ({
+      ...previous,
+      ids: dailyWords.map((word) => word.id),
+    }));
+  }, [sessionReady, today, session.date, session.ids.length, dailyWords]);
+
+  useEffect(() => {
     if (!today) return;
     setSession(loadSession(storageKey, today, dailyWords.map((word) => word.id)));
     setSessionReady(true);
