@@ -145,8 +145,9 @@ export default function VocabularyVault({
 }) {
   const storageKey = "ishtar-vault-" + today;
   const [session, setSession] = useState<Session>(() =>
-    loadSession(storageKey, today, dailyWords.map((word) => word.id)),
+    newSession(today, dailyWords.map((word) => word.id)),
   );
+  const [sessionReady, setSessionReady] = useState(false);
   const [draft, setDraft] = useState({ term: "", meaning: "", example: "" });
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -154,10 +155,10 @@ export default function VocabularyVault({
   const state = session;
 
   useEffect(() => {
-    if (today && session.date !== today) {
-      setSession(newSession(today, dailyWords.map((word) => word.id)));
-    }
-  }, [today, session.date, dailyWords]);
+    if (!today) return;
+    setSession(loadSession(storageKey, today, dailyWords.map((word) => word.id)));
+    setSessionReady(true);
+  }, [storageKey, today]);
 
   const selected = state.ids
     .map((id) => words.find((word) => word.id === id))
@@ -167,13 +168,13 @@ export default function VocabularyVault({
   const limit = Math.ceil(order.length * 0.9);
 
   useEffect(() => {
-    if (!today || session.date !== today) return;
+    if (!sessionReady || !today || session.date !== today) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify(session));
     } catch {
       onToast("Không thể lưu tiến độ Flashcard. Bộ nhớ trình duyệt có thể đã đầy.");
     }
-  }, [session, storageKey, today, onToast]);
+  }, [session, sessionReady, storageKey, today, onToast]);
 
   const start = (roundNumber: number) => {
     const ids = selected.map((word) => word.id);
