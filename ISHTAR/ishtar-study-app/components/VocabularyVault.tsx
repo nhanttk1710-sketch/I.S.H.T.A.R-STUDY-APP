@@ -303,7 +303,10 @@ export default function VocabularyVault({
           Flashcard · Vocabulary Vault
         </h1>
         <p className="mt-2 text-sm text-stone-400">
-          Kho từ không giới hạn · Mỗi ngày ôn tối đa 20 từ qua ba vòng.
+          Guest Vocabulary Vault · Lưu kho từ riêng trên trình duyệt này. Mỗi ngày ôn tối đa 20 từ qua ba vòng.
+        </p>
+        <p className="mt-1 text-xs text-amber-700">
+          Chưa đồng bộ giữa các thiết bị. Hãy dùng Sao lưu/Khôi phục để chuyển kho tạm thời; đồng bộ tài khoản sẽ được bổ sung ở giai đoạn tiếp theo.
         </p>
       </div>
 
