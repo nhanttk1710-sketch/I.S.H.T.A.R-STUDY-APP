@@ -7,9 +7,8 @@ import ImportantEventsCalendar from "./ImportantEventsCalendar";
 import VocabularyVault from "./VocabularyVault";
 import DataBackup from "./DataBackup";
 import LearningArchive from "./LearningArchive";
-import { appendLearningEvent } from "./learningArchive";
-import { readGuestVocabularyVault, writeGuestVocabularyVault } from "./vocabularyStorage";
-import { EMPTY_STUDY_DATA as blank, STUDY_DATA_KEY, isStudyData, normalizeStudyData, preserveCorruptData, writeStudyData } from "./studyStorage";
+import { appendLearningEvent } from "./learningArchiveStorage";
+import { EMPTY_STUDY_DATA as blank, isStudyData, normalizeStudyData } from "./studyStorage";
 
 const days=["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7","Chủ nhật"];
 const uid=()=>Math.random().toString(36).slice(2,10);
@@ -21,82 +20,67 @@ const examScales:Record<string,{min:number;max:number;step:number;defaultTarget:
  TOEIC:{min:10,max:990,step:5,defaultTarget:"850",placeholder:"Mục tiêu TOEIC (10–990)",ticks:[10,200,400,600,800,990]}
 };
 const isValidExamScore=(exam:string,value:number)=>{const scale=examScales[exam];if(!scale||!Number.isFinite(value)||value<scale.min||value>scale.max)return false;const steps=(value-scale.min)/scale.step;return Math.abs(steps-Math.round(steps))<1e-8;};
+type PomodoroHistoryEntry={id:string;startedAt:number;durationSeconds:number;subject:string};
 function Card({children,className=""}:{children:React.ReactNode;className?:string}){return <section className={"rounded-3xl bg-white p-5 shadow-sm sm:p-6 "+className}>{children}</section>}
 function Heading({title,desc}:{title:string;desc:string}){return <div className="mb-3"><h1 className="text-2xl font-bold text-stone-800 sm:text-3xl">{title}</h1><p className="mt-2 text-sm text-stone-400">{desc}</p></div>}
 function Empty({children}:{children:string}){return <p className="rounded-2xl bg-stone-50 p-6 text-center text-sm text-stone-400">{children}</p>}
 
 
-export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,assistantEnabled,onAssistantChange,avatar,onNameChange,onAvatarChange,wallpaper,wallpaperOffsetY,onWallpaperOffsetYChange,onWallpaperChange}:{tab:TabId;name:string;goal:number;onToast:(s:string)=>void;onNavigate:(tab:TabId)=>void;assistantEnabled:boolean;onAssistantChange:(v:boolean)=>void;avatar:string;onNameChange:(v:string)=>void;onAvatarChange:(f?:File)=>void;wallpaper:string;wallpaperOffsetY:number;onWallpaperOffsetYChange:(v:number)=>void;onWallpaperChange:(v:string)=>void}){
+export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,assistantEnabled,onAssistantChange,avatar,onNameChange,onAvatarChange,onAvatarDataChange,wallpaper,wallpaperOffsetY,onWallpaperOffsetYChange,onWallpaperChange}:{tab:TabId;name:string;goal:number;onToast:(s:string)=>void;onNavigate:(tab:TabId)=>void;assistantEnabled:boolean;onAssistantChange:(v:boolean)=>void;avatar:string;onNameChange:(v:string)=>void;onAvatarChange:(f?:File)=>void;onAvatarDataChange:(value:string)=>void;wallpaper:string;wallpaperOffsetY:number;onWallpaperOffsetYChange:(v:number)=>void;onWallpaperChange:(v:string)=>void}){
  const [data,setData]=useState<AppData>(blank),[ready,setReady]=useState(false),[canPersist,setCanPersist]=useState(true);
- const [vaultReady,setVaultReady]=useState(false),[vaultWritable,setVaultWritable]=useState(true);
+ const [knownWords,setKnownWords]=useState<string[]>([]),[knownWordsReady,setKnownWordsReady]=useState(false),[dailySelections,setDailySelections]=useState<Record<string,string[]>>({}),[flashcardSessions,setFlashcardSessions]=useState<Record<string,unknown>>({}),[pomodoroHistory,setPomodoroHistory]=useState<PomodoroHistoryEntry[]>([]),[focusSessionsSinceLongBreak,setFocusSessionsSinceLongBreak]=useState(0);
+ const cloudRevision=useRef(0),latestCloudData=useRef<{study:AppData;knownWordIds:string[];dailySelections:Record<string,string[]>;flashcardSessions:Record<string,unknown>;pomodoroHistory:PomodoroHistoryEntry[];pomodoroRounds:number}>({study:blank,knownWordIds:[],dailySelections:{},flashcardSessions:{},pomodoroHistory:[],pomodoroRounds:0}),saveQueue=useRef(Promise.resolve());
  const [theme,setTheme]=useState<"blue"|"dark">("blue");
  const [profileOpen,setProfileOpen]=useState(false),[profileName,setProfileName]=useState(name),[profileAvatarFile,setProfileAvatarFile]=useState<File|null>(null),[profileAvatarPreview,setProfileAvatarPreview]=useState(avatar); const wallpaperInputRef=useRef<HTMLInputElement>(null);
  const [gradeDraft,setGradeDraft]=useState({subject:"",weight:"1",score:""});
  const [gradeMode,setGradeMode]=useState<"ten"|"four">("ten");
  const [editingResource,setEditingResource]=useState("");
  useEffect(()=>{
-  const key=STUDY_DATA_KEY;
-  try{
-   const raw=localStorage.getItem(key);
-   if(raw){
-    let parsed:unknown;
-    try{parsed=JSON.parse(raw)}catch{parsed=null}
-    if(isStudyData(parsed)){
-     setData(normalizeStudyData(parsed));
-     setTheme(parsed.theme==="dark"?"dark":"blue");
-    }else{
-     let preserved=false;
-     try{preserved=preserveCorruptData(key,raw)}catch{preserved=false}
-     let backup:unknown=null;
-     try{const backupRaw=localStorage.getItem(key+"-backup");backup=backupRaw?JSON.parse(backupRaw):null}catch{}
-     if(isStudyData(backup)){
-      setData(normalizeStudyData(backup));
-      setTheme(backup.theme==="dark"?"dark":"blue");
-      setCanPersist(preserved);
-      onToast(preserved?"Dữ liệu chính bị lỗi. ISHTAR đã giữ bản lỗi và khôi phục bản sao lưu gần nhất.":"Đã tìm thấy bản sao lưu nhưng không thể giữ bản dữ liệu lỗi. Chế độ chỉ đọc được bật để bảo vệ dữ liệu.");
-     }else{
-      setCanPersist(false);
-      onToast(preserved?"Dữ liệu học tập bị lỗi hoặc sai cấu trúc. Đã giữ bản gốc; không tự ghi đè để tránh mất dữ liệu.":"Dữ liệu học tập bị lỗi và không thể tạo bản lưu an toàn. ISHTAR đã khóa việc ghi dữ liệu.");
-     }
-    }
-   }else{
-    const backupRaw=localStorage.getItem(key+"-backup");
-    if(backupRaw){
-     let backup:unknown=null;
-     try{backup=JSON.parse(backupRaw)}catch{}
-     if(isStudyData(backup)){
-      setData(normalizeStudyData(backup));
-      setTheme(backup.theme==="dark"?"dark":"blue");
-      onToast("Không tìm thấy dữ liệu chính. ISHTAR đã nạp bản sao lưu gần nhất.");
-     }else{
-      setCanPersist(false);
-      onToast("Bản sao lưu không hợp lệ. ISHTAR không tự tạo dữ liệu mới để tránh ghi đè.");
-     }
-    }
-   }
-  }catch{
-   setCanPersist(false);
-   onToast("Không thể truy cập bộ nhớ trình duyệt. Dữ liệu sẽ không bị tự ghi đè.");
-  }
-  setReady(true);
+  let active=true;
+  (async()=>{
+   try{
+    const response=await fetch("/api/data",{cache:"no-store"});
+    if(!response.ok)throw new Error("Không tải được dữ liệu cloud.");
+    const result=await response.json() as {data?:{study?:unknown;knownWordIds?:unknown;dailySelections?:unknown;flashcardSessions?:unknown;pomodoroHistory?:unknown;pomodoroRounds?:unknown};revision?:number};
+    if(!active)return;
+    const cloudStudy=isStudyData(result.data?.study)?normalizeStudyData(result.data!.study as AppData):blank;
+    const cloudKnown=Array.isArray(result.data?.knownWordIds)?result.data!.knownWordIds.filter((id):id is string=>typeof id==="string"):[];
+    const cloudDaily=result.data?.dailySelections&&typeof result.data.dailySelections==="object"&&!Array.isArray(result.data.dailySelections)?result.data.dailySelections as Record<string,string[]>:{};
+    const cloudSessions=result.data?.flashcardSessions&&typeof result.data.flashcardSessions==="object"&&!Array.isArray(result.data.flashcardSessions)?result.data.flashcardSessions as Record<string,unknown>:{};
+    const cloudPomodoro=Array.isArray(result.data?.pomodoroHistory)?result.data!.pomodoroHistory.filter((x):x is PomodoroHistoryEntry=>Boolean(x)&&typeof x.id==="string"&&typeof x.startedAt==="number"&&typeof x.durationSeconds==="number"&&typeof x.subject==="string").slice(0,100):[];
+    const cloudRounds=Number.isInteger(result.data?.pomodoroRounds)&&Number(result.data?.pomodoroRounds)>=0&&Number(result.data?.pomodoroRounds)<4?Number(result.data?.pomodoroRounds):0;
+    cloudRevision.current=Number.isSafeInteger(result.revision)?Number(result.revision):0;
+    setData(cloudStudy);setKnownWords(cloudKnown);setTheme(cloudStudy.theme==="dark"?"dark":"blue");
+    if(cloudStudy.name)onNameChange(cloudStudy.name);onAvatarDataChange(cloudStudy.avatar||"");
+    setDailySelections(cloudDaily);
+    setFlashcardSessions(cloudSessions);
+    setPomodoroHistory(cloudPomodoro);setFocusSessionsSinceLongBreak(cloudRounds);setRound(cloudRounds+1);
+    latestCloudData.current={study:cloudStudy,knownWordIds:cloudKnown,dailySelections:cloudDaily,flashcardSessions:cloudSessions,pomodoroHistory:cloudPomodoro,pomodoroRounds:cloudRounds};
+    setCanPersist(true);
+   }catch{
+    if(active){setCanPersist(false);onToast("Không tải được dữ liệu tài khoản. Đang ở chế độ chỉ đọc để tránh ghi đè dữ liệu.");}
+   }finally{if(active){setReady(true);setKnownWordsReady(true);}}
+  })();
+  return()=>{active=false};
  },[]);
  useEffect(()=>{
-  if(!ready||!canPersist)return;
-  const result=writeStudyData({...data,theme});
-  if(result==="saved-without-backup") onToast("Không thể cập nhật bản sao lưu. ISHTAR vẫn đã lưu dữ liệu mới.");
-  else if(result==="failed") onToast("Không thể lưu dữ liệu học tập. Bộ nhớ trình duyệt có thể đã đầy; dữ liệu hiện tại vẫn còn trên trang.");
- },[data,theme,ready,canPersist]);
- useEffect(()=>{
-  if(!ready)return;
-  const result=readGuestVocabularyVault();
-  if(result.status==="valid"){
-    setData(current=>({...current,words:result.vault.words}));
-  }else if(result.status==="invalid"){
-    setVaultWritable(false);
-    onToast("Kho từ vựng riêng bị lỗi định dạng. ISHTAR đã giữ nguyên bản gốc và không ghi đè kho này.");
-  }
-  setVaultReady(true);
- },[ready]);
+  if(!ready||!canPersist||!knownWordsReady)return;
+  const snapshot={study:{...data,avatar:"",theme},knownWordIds:knownWords,dailySelections,flashcardSessions,pomodoroHistory,pomodoroRounds:focusSessionsSinceLongBreak};
+  latestCloudData.current=snapshot;
+  const timer=window.setTimeout(()=>{
+   saveQueue.current=saveQueue.current.then(async()=>{
+    if(!canPersist)return;
+    const payload=latestCloudData.current;
+    try{
+     const response=await fetch("/api/data",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify({data:payload,expectedRevision:cloudRevision.current})});
+     if(response.status===409){setCanPersist(false);onToast("Dữ liệu đã được thay đổi ở thiết bị khác. Tạm dừng lưu để bảo vệ bản cloud hiện tại.");return;}
+     if(!response.ok)throw new Error("cloud write failed");
+     const result=await response.json() as {revision:number};cloudRevision.current=result.revision;
+    }catch{setCanPersist(false);onToast("Không lưu được dữ liệu lên cloud. Đã tạm dừng chỉnh sửa để tránh mất thay đổi.");}
+   });
+  },700);
+  return()=>window.clearTimeout(timer);
+ },[data,theme,knownWords,dailySelections,flashcardSessions,pomodoroHistory,focusSessionsSinceLongBreak,ready,knownWordsReady,canPersist]);
  useEffect(()=>{document.documentElement.dataset.theme=theme==="dark"?"blue":theme;document.documentElement.classList.toggle("dark-theme",theme==="dark")},[theme]);
  const [taskTitle,setTaskTitle]=useState(""),[taskSubject,setTaskSubject]=useState(""),[taskDue,setTaskDue]=useState("");
  const [taskFilter,setTaskFilter]=useState<"all"|"pending"|"done"|"overdue">("all"),[taskEditId,setTaskEditId]=useState("");
@@ -104,36 +88,19 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
  const [resource,setResource]=useState<Resource>({id:"",title:"",url:""});
  const [goal,setGoal]=useState({exam:"IELTS",target:"7.0",examDate:"",score:""});
  const [word,setWord]=useState<Word>({id:"",term:"",meaning:""});
- type PomodoroHistoryEntry={id:string;startedAt:number;durationSeconds:number;subject:string};
  const [seconds,setSeconds]=useState(1500),[mode,setMode]=useState<"study"|"shortBreak"|"longBreak">("study"),[running,setRunning]=useState(false),[round,setRound]=useState(1);
- const [pomodoroSubject,setPomodoroSubject]=useState(""),[pomodoroSubjectDraft,setPomodoroSubjectDraft]=useState(""),[pomodoroHistory,setPomodoroHistory]=useState<PomodoroHistoryEntry[]>([]),[historyReady,setHistoryReady]=useState(false),[focusSessionsSinceLongBreak,setFocusSessionsSinceLongBreak]=useState(0);
+ const [pomodoroSubject,setPomodoroSubject]=useState(""),[pomodoroSubjectDraft,setPomodoroSubjectDraft]=useState("");
  const timerDeadline=useRef<number|null>(null),activeSessionStartedAt=useRef<number|null>(null);
- useEffect(()=>{try{const raw=localStorage.getItem("ishtar_pomodoro_history_v1");if(raw){const parsed=JSON.parse(raw);if(Array.isArray(parsed))setPomodoroHistory(parsed.filter((x):x is PomodoroHistoryEntry=>Boolean(x)&&typeof x.id==="string"&&typeof x.startedAt==="number"&&typeof x.durationSeconds==="number"&&typeof x.subject==="string").slice(0,100))}const savedRounds=Number(localStorage.getItem("ishtar_pomodoro_rounds_v1"));if(Number.isInteger(savedRounds)&&savedRounds>=0&&savedRounds<4){setFocusSessionsSinceLongBreak(savedRounds);setRound(savedRounds+1)}}catch{}finally{setHistoryReady(true)}},[]);
- useEffect(()=>{if(!historyReady)return;try{localStorage.setItem("ishtar_pomodoro_history_v1",JSON.stringify(pomodoroHistory.slice(0,100)));localStorage.setItem("ishtar_pomodoro_rounds_v1",String(focusSessionsSinceLongBreak))}catch{onToast("Không thể lưu lịch sử Pomodoro. Bộ nhớ trình duyệt có thể đã đầy.")}},[pomodoroHistory,focusSessionsSinceLongBreak,historyReady]);
  const [scoreEntry,setScoreEntry]=useState<Record<string,string>>({});
- const [flip,setFlip]=useState(false),[wordIndex,setWordIndex]=useState(0),[knownWords,setKnownWords]=useState<string[]>([]);
- const [knownWordsReady,setKnownWordsReady]=useState(false);
+ const [flip,setFlip]=useState(false),[wordIndex,setWordIndex]=useState(0);
  const [today,setToday]=useState("");
  useEffect(()=>{const date=new Date();setToday(date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0"))},[]);
- useEffect(()=>{if(!today||!vaultReady)return;try{const vault=readGuestVocabularyVault();if(vault.status==="valid"){setKnownWords(vault.vault.knownWordIds);return;}if(vault.status==="invalid"){setVaultWritable(false)}const key="ishtar-known-words";const saved=localStorage.getItem(key);if(saved){const parsed=JSON.parse(saved);setKnownWords(Array.isArray(parsed)?parsed.filter((id):id is string=>typeof id==="string"):[])}else{const migrated=new Set<string>();for(let i=0;i<localStorage.length;i++){const storageKey=localStorage.key(i);if(!storageKey?.startsWith("ishtar-known-")||storageKey===key)continue;try{const legacy=JSON.parse(localStorage.getItem(storageKey)||"[]");if(Array.isArray(legacy))legacy.forEach(id=>{if(typeof id==="string")migrated.add(id)})}catch{}}const ids=[...migrated];setKnownWords(ids);if(ids.length)localStorage.setItem(key,JSON.stringify(ids))}}catch{setKnownWords([])}finally{setKnownWordsReady(true)}},[today,vaultReady]);
- useEffect(()=>{
-  if(!ready||!vaultReady||!knownWordsReady||!vaultWritable)return;
-  const result=writeGuestVocabularyVault(data.words,knownWords);
-  if(result==="failed")onToast("Không thể lưu Kho từ vựng riêng. Hãy kiểm tra dung lượng trình duyệt và xuất backup.");
-  else if(result==="invalid"){setVaultWritable(false);onToast("Kho từ vựng có dữ liệu lỗi; ISHTAR đã dừng ghi để bảo vệ bản gốc.");}
- },[ready,vaultReady,knownWordsReady,vaultWritable,data.words,knownWords]);
  const dailyWords=useMemo(()=>{
   if(!today||!knownWordsReady)return [];
-  const key="ishtar-daily-"+today;
   const byId=new Map(data.words.map(w=>[w.id,w]));
   let picked:Word[]=[];
-  try{
-    const saved=localStorage.getItem(key);
-    if(saved){
-      const ids=JSON.parse(saved) as string[];
-      picked=ids.map(id=>byId.get(id)).filter((w):w is Word=>Boolean(w));
-    }
-  }catch{}
+  const saved=dailySelections[today];
+  if(Array.isArray(saved))picked=saved.map(id=>byId.get(id)).filter((w):w is Word=>Boolean(w));
   // Giữ các từ đã chọn trong ngày; nếu từ bị xóa hoặc kho vừa được bổ sung,
   // chỉ bốc thêm ngẫu nhiên để đủ tối đa 20 từ, không giới hạn kích thước kho.
   if(picked.length<Math.min(20,data.words.length)){
@@ -148,9 +115,9 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
     }
     picked=[...picked,...pool.slice(0,20-picked.length)];
   }
-  try{localStorage.setItem(key,JSON.stringify(picked.map(w=>w.id)))}catch{}
   return picked;
-},[data.words,today,knownWords,knownWordsReady]);
+},[data.words,today,knownWords,knownWordsReady,dailySelections]);
+ useEffect(()=>{if(!today||!knownWordsReady||!dailyWords.length)return;const ids=dailyWords.map(item=>item.id);if(JSON.stringify(dailySelections[today]||[])!==JSON.stringify(ids))setDailySelections(current=>({...current,[today]:ids}));},[today,knownWordsReady,dailyWords,dailySelections]);
  const addTask=(e:React.FormEvent)=>{e.preventDefault();const title=taskTitle.trim();if(!title)return;const subject=taskSubject.trim()||"Khác";if(taskEditId){setData(d=>({...d,tasks:d.tasks.map(t=>t.id===taskEditId?{...t,title,subject,due:taskDue}:t)}));onToast("Đã cập nhật bài tập.");}else{const id=uid();setData(d=>({...d,tasks:[...d.tasks,{id,title,subject,due:taskDue,done:false}]}));appendLearningEvent("task_created",{title,subject,due:taskDue},{entityId:id});onToast("Đã thêm bài tập.");}setTaskTitle("");setTaskSubject("");setTaskDue("");setTaskEditId("");};
  const ding=()=>{try{const Ctx=window.AudioContext||(window as any).webkitAudioContext;const ctx=new Ctx();[880,1175].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=f;g.gain.setValueAtTime(.0001,ctx.currentTime+i*.18);g.gain.exponentialRampToValueAtTime(.18,ctx.currentTime+i*.18+.02);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+i*.18+.3);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*.18);o.stop(ctx.currentTime+i*.18+.32)});setTimeout(()=>ctx.close(),1000)}catch{}};
  useEffect(()=>{if(!running)return;timerDeadline.current=Date.now()+seconds*1000;const id=window.setInterval(()=>{const left=Math.max(0,Math.ceil(((timerDeadline.current||Date.now())-Date.now())/1000));setSeconds(left);if(left===0){clearInterval(id);timerDeadline.current=null;ding();setRunning(false);if(mode==="study"){const startedAt=activeSessionStartedAt.current??(Date.now()-1500*1000);const entry:PomodoroHistoryEntry={id:uid(),startedAt,durationSeconds:1500,subject:pomodoroSubject.trim()};setPomodoroHistory(items=>[entry,...items].slice(0,100));appendLearningEvent("pomodoro_completed",{subject:entry.subject,durationMinutes:Math.round(entry.durationSeconds/60),startedAt:new Date(entry.startedAt).toISOString()},{id:entry.id,entityId:entry.id,occurredAt:new Date(entry.startedAt+entry.durationSeconds*1000).toISOString()});activeSessionStartedAt.current=null;const completedCount=focusSessionsSinceLongBreak+1;if(completedCount>=4){setFocusSessionsSinceLongBreak(0);setRound(4);setMode("longBreak");setSeconds(900);onToast("Hoàn thành 4 phiên tập trung! Đã đến giờ nghỉ dài 15 phút.")}else{setFocusSessionsSinceLongBreak(completedCount);setRound(completedCount+1);setMode("shortBreak");setSeconds(300);onToast("Hoàn thành 25 phút tập trung! Bắt đầu giờ nghỉ 5 phút nhé.")}}else{const wasLongBreak=mode==="longBreak";setMode("study");setSeconds(1500);if(wasLongBreak){setRound(1);onToast("Đã hết giờ nghỉ dài. Bắt đầu chu kỳ tập trung mới nhé!")}else{onToast("Đã hết giờ nghỉ. Sẵn sàng cho phiên tập trung tiếp theo!")}}}},250);return()=>clearInterval(id)},[running,mode]);
@@ -160,13 +127,15 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
  const focusMinutesToday=Math.round(completedFocusToday.reduce((sum,item)=>sum+item.durationSeconds,0)/60);
  const focusTimeLabel=focusMinutesToday>=60?Math.floor(focusMinutesToday/60)+" giờ "+(focusMinutesToday%60?focusMinutesToday%60+" phút":""):focusMinutesToday+" phút";
  if(tab==="archive")return <LearningArchive/>;
- if(tab==="overview")return <div className="ishtar-dashboard">
+  if(!ready)return <div className="grid min-h-[50vh] place-items-center text-sm text-slate-500">Đang tải dữ liệu học tập an toàn…</div>;
+  if(!canPersist)return <div role="alert" className="mx-auto mt-10 max-w-xl rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center text-sm leading-6 text-amber-900">ISHTAR chưa thể lưu an toàn với tài khoản này, nên các chỉnh sửa đang bị khóa để bảo vệ dữ liệu cloud. Hãy tải lại trang khi kết nối ổn định.</div>;
+  if(tab==="overview")return <div className="ishtar-dashboard">
  <div className="ishtar-dashboard__greeting"><h1>Chào mừng trở lại, {name||"bạn"}!</h1><p>Học tập là hành trình, và bạn đang đi đúng hướng.</p></div>
  <div className="ishtar-dashboard__stats">
   <section className="ishtar-stat"><div className="ishtar-stat__icon"><CheckCircle2 size={22}/></div><div className="ishtar-stat__copy"><span>Nhiệm vụ</span><strong>{data.tasks.length?completed+"/"+data.tasks.length:"—"}</strong><small>{data.tasks.length?"đã hoàn thành":"chưa có nhiệm vụ"}</small></div><span className="ishtar-stat__star">✦</span></section>
   <section className="ishtar-stat"><div className="ishtar-stat__icon"><CalendarDays size={22}/></div><div className="ishtar-stat__copy"><span>Thời khóa biểu</span><strong>{data.sessions.length||"—"}</strong><small>{data.sessions.length?"buổi học đã lên lịch":"chưa xếp buổi học"}</small></div><span className="ishtar-stat__star">✦</span></section>
   <section className="ishtar-stat"><div className="ishtar-stat__icon"><BookOpen size={22}/></div><div className="ishtar-stat__copy"><span>Kho từ vựng</span><strong>{data.words.length||"—"}</strong><small>{data.words.length?"từ do bạn tự thêm":"chưa có từ vựng"}</small></div><span className="ishtar-stat__star">✦</span></section>
-  <section className="ishtar-stat"><div className="ishtar-stat__icon"><Clock3 size={22}/></div><div className="ishtar-stat__copy"><span>Tập trung hôm nay</span><strong>{!historyReady||!focusMinutesToday?"—":focusTimeLabel}</strong><small>{!historyReady?"đang tải lịch sử":focusMinutesToday?completedFocusToday.length+" phiên hoàn thành":"chưa có phiên hoàn thành"}</small></div><span className="ishtar-stat__star">✦</span></section>
+  <section className="ishtar-stat"><div className="ishtar-stat__icon"><Clock3 size={22}/></div><div className="ishtar-stat__copy"><span>Tập trung hôm nay</span><strong>{!ready||!focusMinutesToday?"—":focusTimeLabel}</strong><small>{!ready?"đang tải lịch sử":focusMinutesToday?completedFocusToday.length+" phiên hoàn thành":"chưa có phiên hoàn thành"}</small></div><span className="ishtar-stat__star">✦</span></section>
  </div>
  <div className="ishtar-dashboard__content"><ImportantEventsCalendar goals={data.goals} events={data.events} tasks={data.tasks} onEventsChange={(events)=>setData(d=>({...d,events}))} onNavigate={onNavigate}/></div>
  <section className="ishtar-quick"><div className="ishtar-quick__heading"><h2><Flame size={21}/>Bắt đầu nhanh</h2><span>Giữ nhịp học tập mỗi ngày</span></div><div className="ishtar-quick__actions">
@@ -283,8 +252,8 @@ export default function StudyTabs({tab,name,goal:dailyGoal,onToast,onNavigate,as
  <Card className="border border-blue-100/70 shadow-[0_8px_30px_rgba(30,64,175,0.04)]"><div className="mb-5 flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-600"><ImageIcon size={23}/></span><div><h3 className="text-lg font-bold text-slate-800">Hình nền tùy chỉnh</h3><p className="text-sm text-slate-500">Tùy chọn hình nền cho không gian học tập</p></div></div><div className="rounded-2xl border border-slate-200 p-4"><div className="flex flex-col gap-4 sm:flex-row sm:items-center"><div className="h-28 w-full overflow-hidden rounded-xl bg-gradient-to-br from-sky-100 via-blue-50 to-indigo-100 sm:w-56">{wallpaper?<img src={wallpaper} alt="Ảnh nền ứng dụng" className="h-full w-full object-cover" style={{objectPosition:`center ${wallpaperOffsetY}%`}}/>:<div className="grid h-full place-items-center text-blue-400"><ImageIcon size={32}/><span className="mt-1 text-xs">Chưa chọn ảnh nền</span></div>}</div><div className="min-w-0 flex-1"><b className="text-sm text-slate-800">{wallpaper?"Ảnh nền tùy chỉnh":"Hình nền mặc định"}</b><p className="mt-1 text-xs leading-5 text-slate-500">Tải ảnh JPG, PNG hoặc WebP. Ảnh nền hiển thị rõ phía sau không gian học tập. Bạn có thể đặt lại mặc định bất cứ lúc nào.</p><div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={()=>wallpaperInputRef.current?.click()} className="rounded-xl bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-600"><Camera size={15} className="mr-2 inline"/>{wallpaper?"Thay ảnh nền":"Chọn ảnh từ thiết bị"}</button><input ref={wallpaperInputRef} type="file" accept="image/*" className="hidden" onChange={e=>{const file=e.target.files?.[0];if(!file)return;if(!file.type.startsWith("image/")){onToast("Vui lòng chọn một tệp hình ảnh.");e.target.value="";return}if(file.size>20*1024*1024){onToast("Ảnh gốc tối đa 20 MB.");e.target.value="";return}const reader=new FileReader();reader.onload=()=>{const img=new Image();img.onload=()=>{const max=1100,scale=Math.min(1,max/Math.max(img.width,img.height)),canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));const ctx=canvas.getContext("2d");if(!ctx){onToast("Trình duyệt không thể xử lý ảnh này.");return}ctx.drawImage(img,0,0,canvas.width,canvas.height);let quality=0.72;let output=canvas.toDataURL("image/jpeg",quality);while(output.length>650_000&&quality>0.24){quality-=0.08;output=canvas.toDataURL("image/jpeg",quality)}if(output.length>650_000){onToast("Ảnh vẫn còn quá nặng sau khi nén. Hãy chọn ảnh khác.");return}onWallpaperChange(output);onToast("Đã áp dụng ảnh làm hình nền ứng dụng.")};img.onerror=()=>onToast("Không đọc được ảnh. Hãy thử tệp ảnh khác.");img.src=String(reader.result||"")};reader.onerror=()=>onToast("Không thể đọc tệp ảnh.");reader.readAsDataURL(file);e.target.value=""}}/>{wallpaper&&<div className="mt-4 w-full max-w-xl"><div className="mb-2 flex items-center justify-between gap-3"><label htmlFor="wallpaper-offset-y" className="text-sm font-semibold text-slate-700">Căn chỉnh vị trí ảnh nền</label><span className="text-sm font-bold tabular-nums text-amber-600">{wallpaperOffsetY}%</span></div><input id="wallpaper-offset-y" type="range" min="0" max="100" step="1" value={wallpaperOffsetY} onChange={e=>onWallpaperOffsetYChange(Number(e.target.value))} className="w-full accent-amber-500"/><div className="flex justify-between text-xs text-slate-400"><span>Phía trên</span><span>Ở giữa</span><span>Phía dưới</span></div></div>}{wallpaper&&<button type="button" onClick={()=>{onWallpaperChange("");onToast("Đã khôi phục hình nền mặc định.")}} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Đặt lại mặc định</button>}</div></div></div></div></Card>
  <Card className="border border-blue-100/70 shadow-[0_8px_30px_rgba(30,64,175,0.04)]"><div className="mb-5 flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-600"><UserRound size={23}/></span><div><h3 className="text-lg font-bold text-slate-800">Tài khoản</h3><p className="text-sm text-slate-500">Quản lý thông tin tài khoản của bạn</p></div></div><div className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-3 sm:flex-row sm:items-center"><img src={avatar||"/isthar-avatar.png"} alt="Ảnh đại diện" className="h-14 w-14 rounded-full object-cover"/><div className="min-w-0 flex-1"><b className="text-sm text-slate-800">{name||"Người dùng"}</b><p className="text-xs text-slate-500">Thông tin cá nhân</p></div><button type="button" onClick={()=>{setProfileName(name);setProfileAvatarFile(null);setProfileAvatarPreview(avatar);setProfileOpen(true)}} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Chỉnh sửa</button></div></Card>
  <DataBackup onToast={onToast}/>
- </div>{profileOpen&&<div className="fixed inset-0 z-[80] grid place-items-center bg-slate-900/40 p-4" onMouseDown={e=>{if(e.target===e.currentTarget)setProfileOpen(false)}}><div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"><div className="mb-5 flex items-center justify-between"><h3 className="text-xl font-bold text-slate-800">Chỉnh sửa tài khoản</h3><button type="button" onClick={()=>setProfileOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100"><X size={20}/></button></div><label className="mb-2 block text-sm font-semibold text-slate-700">Tên hiển thị</label><input className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-400" value={profileName} onChange={e=>setProfileName(e.target.value)} maxLength={40}/><div className="mt-5 flex items-center gap-4"><img src={profileAvatarPreview||"/isthar-avatar.png"} alt="Ảnh đại diện xem trước" className="h-16 w-16 rounded-full object-cover"/><label className="cursor-pointer rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"><Camera size={16} className="mr-2 inline"/>Chọn ảnh đại diện<input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e=>{const file=e.target.files?.[0];if(!file)return;if(!["image/png","image/jpeg","image/webp"].includes(file.type)){onToast("Chỉ hỗ trợ ảnh PNG, JPG hoặc WebP.");e.target.value="";return}if(file.size>2*1024*1024){onToast("Ảnh đại diện tối đa 2 MB.");e.target.value="";return}setProfileAvatarFile(file);const reader=new FileReader();reader.onload=()=>setProfileAvatarPreview(String(reader.result||""));reader.readAsDataURL(file);e.target.value=""}}/></label></div><div className="mt-7 flex justify-end gap-2"><button type="button" onClick={()=>{setProfileOpen(false);setProfileAvatarFile(null);setProfileAvatarPreview(avatar);setProfileName(name)}} className="rounded-xl bg-slate-100 px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-200">Hủy</button><button type="button" onClick={()=>{const v=profileName.trim();if(!v){onToast("Tên hiển thị không được để trống.");return}try{localStorage.setItem("ishtar_user",JSON.stringify({name:v,avatar:profileAvatarPreview||avatar}))}catch{onToast("Không thể lưu thông tin tài khoản.");return}onNameChange(v);if(profileAvatarFile)onAvatarChange(profileAvatarFile);setProfileOpen(false);setProfileAvatarFile(null);onToast("Đã lưu thay đổi tài khoản.")}} className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700">Lưu thay đổi</button></div></div></div>}</>;
- if(tab==="flashcards")return <VocabularyVault words={data.words} onWordsChange={words=>setData(d=>({...d,words}))} dailyWords={dailyWords} today={today} knownWords={knownWords} onKnownWordsChange={ids=>{setKnownWords(ids);try{localStorage.setItem("ishtar-known-words",JSON.stringify(ids))}catch{onToast("Không thể lưu trạng thái từ vựng. Bộ nhớ trình duyệt có thể đã đầy.")}}} onToast={onToast}/>;
+ </div>{profileOpen&&<div className="fixed inset-0 z-[80] grid place-items-center bg-slate-900/40 p-4" onMouseDown={e=>{if(e.target===e.currentTarget)setProfileOpen(false)}}><div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"><div className="mb-5 flex items-center justify-between"><h3 className="text-xl font-bold text-slate-800">Chỉnh sửa tài khoản</h3><button type="button" onClick={()=>setProfileOpen(false)} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100"><X size={20}/></button></div><label className="mb-2 block text-sm font-semibold text-slate-700">Tên hiển thị</label><input className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-400" value={profileName} onChange={e=>setProfileName(e.target.value)} maxLength={40}/><div className="mt-5 flex items-center gap-4"><img src={profileAvatarPreview||"/isthar-avatar.png"} alt="Ảnh đại diện xem trước" className="h-16 w-16 rounded-full object-cover"/><label className="cursor-pointer rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"><Camera size={16} className="mr-2 inline"/>Chọn ảnh đại diện<input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e=>{const file=e.target.files?.[0];if(!file)return;if(!["image/png","image/jpeg","image/webp"].includes(file.type)){onToast("Chỉ hỗ trợ ảnh PNG, JPG hoặc WebP.");e.target.value="";return}if(file.size>500*1024){onToast("Ảnh đại diện tối đa 500 KB để đồng bộ an toàn.");e.target.value="";return}setProfileAvatarFile(file);const reader=new FileReader();reader.onload=()=>setProfileAvatarPreview(String(reader.result||""));reader.readAsDataURL(file);e.target.value=""}}/></label></div><div className="mt-7 flex justify-end gap-2"><button type="button" onClick={()=>{setProfileOpen(false);setProfileAvatarFile(null);setProfileAvatarPreview(avatar);setProfileName(name)}} className="rounded-xl bg-slate-100 px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-200">Hủy</button><button type="button" onClick={()=>{const v=profileName.trim();if(!v){onToast("Tên hiển thị không được để trống.");return}setData(d=>({...d,name:v,avatar:profileAvatarPreview||d.avatar}));onNameChange(v);if(profileAvatarFile)onAvatarChange(profileAvatarFile);setProfileOpen(false);setProfileAvatarFile(null);onToast("Đã lưu thay đổi tài khoản.")}} className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700">Lưu thay đổi</button></div></div></div>}</>;
+ if(tab==="flashcards")return <VocabularyVault words={data.words} onWordsChange={words=>setData(d=>({...d,words}))} dailyWords={dailyWords} today={today} knownWords={knownWords} onKnownWordsChange={setKnownWords} sessionData={flashcardSessions[today]} onSessionChange={(date,value)=>setFlashcardSessions(current=>({...current,[date]:value}))} onToast={onToast}/>;
  return null;
 }
 function GoalPanel({goal,score,setScore,addScore,remove}:{goal:Goal;score:string;setScore:(v:string)=>void;addScore:(v:string)=>void;remove:()=>void}){

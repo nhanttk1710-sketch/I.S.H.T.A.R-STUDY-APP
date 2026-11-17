@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Archive, BookOpen, CheckCircle2, Clock3, Flame, GraduationCap, RefreshCw } from "lucide-react";
-import { getLearningEventLabel, readLearningArchive, type LearningEvent } from "./learningArchive";
+import { getLearningEventLabel, readLearningArchive, type LearningEvent } from "./learningArchiveStorage";
 
 function eventDescription(event: LearningEvent) {
   const p = event.payload;

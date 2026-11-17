@@ -1,1 +1,5 @@
-import IshtarApp from "@/components/ishtar-app";export default function Home(){return <IshtarApp/>}
+import AuthGate from "@/components/AuthGate";
+
+export default function Home() {
+  return <AuthGate />;
+}

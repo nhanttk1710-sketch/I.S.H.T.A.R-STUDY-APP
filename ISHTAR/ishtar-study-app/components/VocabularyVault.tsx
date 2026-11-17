@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Word } from "./types";
-import { appendLearningEvent } from "./learningArchive";
+import { appendLearningEvent } from "./learningArchiveStorage";
 
 type Round = {
   passed: boolean;
@@ -66,12 +66,10 @@ function makeChoices(ids: string[], words: Word[]) {
   ) as Record<string, string[]>;
 }
 
-function loadSession(key: string, date: string, ids: string[]): Session {
+function loadSession(value: unknown, date: string, ids: string[]): Session {
   try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return newSession(date, ids);
-
-    const parsed = JSON.parse(raw) as Partial<Session>;
+    if (!value || typeof value !== "object" || Array.isArray(value)) return newSession(date, ids);
+    const parsed = value as Partial<Session>;
     if (
       parsed.date !== date ||
       !Array.isArray(parsed.ids) ||
@@ -113,15 +111,6 @@ function loadSession(key: string, date: string, ids: string[]): Session {
           : {},
     };
   } catch {
-    // Keep the original value so a failed parse never destroys the only copy.
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw && !localStorage.getItem(key + "-corrupt-backup")) {
-        localStorage.setItem(key + "-corrupt-backup", raw);
-      }
-    } catch {
-      // Storage may be unavailable or full; the app can still run in memory.
-    }
     return newSession(date, ids);
   }
 }
@@ -133,6 +122,8 @@ export default function VocabularyVault({
   today,
   knownWords,
   onKnownWordsChange,
+  sessionData,
+  onSessionChange,
   onToast,
 }: {
   words: Word[];
@@ -141,9 +132,10 @@ export default function VocabularyVault({
   today: string;
   knownWords: string[];
   onKnownWordsChange: (value: string[]) => void;
+  sessionData?: unknown;
+  onSessionChange: (date: string, value: Session) => void;
   onToast: (value: string) => void;
 }) {
-  const storageKey = "ishtar-vault-" + today;
   const [session, setSession] = useState<Session>(() =>
     newSession(today, dailyWords.map((word) => word.id)),
   );
@@ -164,9 +156,9 @@ export default function VocabularyVault({
 
   useEffect(() => {
     if (!today) return;
-    setSession(loadSession(storageKey, today, dailyWords.map((word) => word.id)));
+    setSession(loadSession(sessionData, today, dailyWords.map((word) => word.id)));
     setSessionReady(true);
-  }, [storageKey, today]);
+  }, [today]);
 
   const selected = state.ids
     .map((id) => words.find((word) => word.id === id))
@@ -177,12 +169,8 @@ export default function VocabularyVault({
 
   useEffect(() => {
     if (!sessionReady || !today || session.date !== today) return;
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(session));
-    } catch {
-      onToast("Không thể lưu tiến độ Flashcard. Bộ nhớ trình duyệt có thể đã đầy.");
-    }
-  }, [session, sessionReady, storageKey, today, onToast]);
+    onSessionChange(today, session);
+  }, [session, sessionReady, today]);
 
   const start = (roundNumber: number) => {
     const ids = selected.map((word) => word.id);
