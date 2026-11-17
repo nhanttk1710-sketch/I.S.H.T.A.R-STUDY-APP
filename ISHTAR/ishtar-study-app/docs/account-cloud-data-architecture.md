@@ -27,7 +27,7 @@ Use **Better Auth + Neon PostgreSQL** for application accounts and persistence.
 - Neon PostgreSQL is the source of truth for signed-in user data.
 - The application must never connect to Neon from the browser. All database reads/writes go through authenticated Next.js server route handlers.
 - Each data request derives the user ID from the verified Better Auth session. Never accept a user ID supplied by the client as the authorization boundary.
-- Browser LocalStorage remains only as a guest/offline cache and device preferences. It must not silently override a newer cloud revision.
+- Cloud is the only durable source of truth for signed-in study data. LocalStorage is not a second study-data database and must not silently override cloud data. It may hold device-only UI preferences or short-lived interaction state.
 - Keep the existing Login UI as a visual starting point, but replace its simulated submit handler with Better Auth client methods only after auth routes, environment variables, and database migrations are configured.
 
 ## 3. Persistence model (MVP)
@@ -71,18 +71,16 @@ Do not store passwords, auth tokens, session cookies, or secrets inside the JSON
 
 This is the initial ownership contract. If the user explicitly wants a device preference to follow them, promote it to account data later.
 
-## 5. Guest-to-account migration
+## 5. Initial account setup (cloud-first)
 
-Migration is explicit and idempotent:
-1. After successful sign-up/sign-in, read the local guest snapshot without deleting or modifying it.
-2. Validate and normalize it on the server using the same versioned schema rules.
-3. If the account has no cloud document, create one from the guest snapshot.
-4. If the account already has data, return a merge preview/result. Merge by stable entity IDs; for vocabulary, also detect normalized duplicate terms. Do not silently replace the account document.
-5. Persist the merged result transactionally, increment revision, and return a receipt.
-6. Only after the server confirms success may the UI mark the local guest data as migrated. Keep a local backup until the user has verified the account data.
-7. Repeated migration requests with the same migration ID must not duplicate records.
+The user has intentionally avoided adding meaningful study data to the current browser store because it was not durable across deploys/devices. Therefore the first cloud release should start with a clean account-owned document rather than assuming there is a large guest dataset to migrate.
 
-No automatic deletion of guest data. No merge based only on array position. For conflicting edits to the same entity ID, preserve both versions or ask the user to choose; never silently pick an arbitrary winner.
+1. After successful sign-up/sign-in, fetch the account's cloud document and revision.
+2. If no document exists, initialize a validated empty study document for that account.
+3. If legacy browser data is detected, do not automatically import or overwrite anything. Offer an explicit export/import path only after showing a preview and validating the payload.
+4. Cloud writes are transactional and revision-checked. Keep a downloadable backup/export path for recovery.
+
+No automatic deletion of legacy browser keys. No merge based only on array position. Cloud data must never be replaced by an empty client state during initial loading.
 
 ## 6. Sync API contract
 
@@ -120,12 +118,12 @@ Do not create a paid database/integration, retrieve secret values, or change Ver
 6. Test sign-up, sign-in, sign-out, wrong password, refresh, two accounts isolation, guest migration, duplicate migration, concurrent edits from two devices, and offline/retry behavior.
 7. Only then enable the cloud path in Preview. Production remains unchanged until explicit approval.
 
-During rollout, keep the current LocalStorage read path as the guest source. Do not remove old keys or change the existing production branch until the cloud migration and restore tests pass.
+During rollout, keep existing LocalStorage code isolated on TEST only as legacy compatibility until cloud reads/writes are verified. Do not let an empty LocalStorage state overwrite cloud data. Do not remove old keys or change the production branch until restore tests pass.
 
 ## 9. Explicit non-goals for this phase
 
 - No production deployment or merge.
-- No deletion/renaming of existing LocalStorage keys.
+- No deletion/renaming of existing LocalStorage keys during the first cloud rollout.
 - No claim that sync is working before two-device tests pass.
 - No client-side database connection.
 - No password handling implemented in a custom API.
